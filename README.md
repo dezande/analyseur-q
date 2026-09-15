@@ -1,6 +1,9 @@
-# Rain Man
+# Analyseur d'ondes quantiques des cartes à jouer
 
-Diaporama plein écran pour accompagner la routine Rain Man de Leonard Green, en français.
+Nom court (sous l'icône) : **Analyseur Q**, modèle AQ-52.
+
+Diaporama plein écran pour accompagner la routine Rain Man de Leonard Green, en français, dans l'habillage d'un faux appareil pseudo-scientifique.
+Le dépôt et l'adresse gardent le nom `rain-man` : changer l'adresse casserait l'app déjà installée sur les téléphones.
 Une PWA mono-page, 100 % hors-ligne, pilotée au doigt, au clavier ou avec une télécommande de présentation.
 
 ## Écrire les slides
@@ -9,7 +12,7 @@ Tout le texte est dans **[`src/content/slides.ts`](src/content/slides.ts)** : un
 
 ```ts
 {
-	titre: 'Rain Man',
+	titre: 'Analyseur d\'ondes quantiques des cartes à jouer',
 	grand: '52',
 	texte: 'Un paragraphe.\n\nUn autre, avec un **mot mis en valeur**.',
 	image: 'images/carte.png',

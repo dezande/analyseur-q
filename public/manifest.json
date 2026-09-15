@@ -1,8 +1,8 @@
 {
 	"id": "./",
-	"name": "Rain Man",
-	"short_name": "Rain Man",
-	"description": "Diaporama de la routine Rain Man, 100 % hors-ligne.",
+	"name": "Analyseur d'ondes quantiques des cartes à jouer",
+	"short_name": "Analyseur Q",
+	"description": "Analyseur d'ondes quantiques des cartes à jouer, modèle AQ-52. 100 % hors-ligne.",
 	"lang": "fr",
 	"dir": "ltr",
 	"start_url": "./",

@@ -1,5 +1,6 @@
 /*
- * Rain Man : point d'entrée de l'app.
+ * Analyseur d'ondes quantiques des cartes à jouer (nom court : Analyseur Q) : point d'entrée de l'app.
+ * Accessoire de la routine Rain Man.
  *
  * Un diaporama plein écran, 100 % hors-ligne, pour accompagner la routine.
  *   tap à droite, glisser vers la gauche, → ou télécommande : slide suivante
