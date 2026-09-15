@@ -88,9 +88,16 @@ test('tap à droite : suivante ; tap à gauche : précédente ; bloqué aux extr
 		assert.equal(await current(page), 0, 'pas de retour avant la première slide');
 		await pressKey(page, 'End');
 		await expectSlide(page, COUNT - 1);
-		await page.tap(RIGHT);
+		await page.tap({ x: SCREEN.width - 20, y: SCREEN.height - 140 });
 		await sleep(200);
-		assert.equal(await current(page), COUNT - 1, 'pas de retour au début après la dernière slide');
+		assert.equal(await current(page), COUNT - 1, 'pas de retour au début par un tap après la dernière slide');
+		// Un vrai appui sur le bouton de la dernière slide (Recommencer), s'il y en a un, ramène à sa destination.
+		const last = SLIDES[COUNT - 1];
+		if (last.bouton) {
+			const { x, y } = await page.evaluate<{ x: number; y: number }>(`(() => { const r = document.querySelector('.slide.current .bouton').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
+			await page.tap({ x, y });
+			await expectSlide(page, (last.boutonVers ?? COUNT) - 1);
+		}
 	});
 });
 

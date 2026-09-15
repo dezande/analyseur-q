@@ -32,7 +32,7 @@ const FIXTURE: Slide[] = [
 	/* 6 */ { etiquette: 'Résultat', grand: '42', texte: 'cartes' },
 	/* 7 */ { etiquette: 'Résultat', image: 'images/logo.svg', texte: 'Image et texte' },
 	/* 8 */ { texte: 'Un texte très long. '.repeat(60) },
-	/* 9 */ { titre: 'Fin' },
+	/* 9 */ { titre: 'Fin', bouton: 'Recommencer', boutonVers: 1 },
 ];
 const COUNT = FIXTURE.length;
 const BUTTON_ONLY = 2;
@@ -166,6 +166,23 @@ test('bouton : appui juste après l’arrivée sur la slide, pendant le fondu, m
 		await page.tap(center); // aussitôt : la slide précédente est encore en train de disparaître
 		await expectSlide(page, BUTTON_ONLY + 1);
 		assert.deepEqual(await actions(page), { button: true, bar: false }, 'arrivée sur la slide bouton et chargement, bouton remis');
+	});
+});
+
+test('bouton Recommencer (boutonVers) : l’appui revient à la première slide ; tap à droite, glissement et télécommande ne recommencent pas', TEST_TIMEOUT, async () => {
+	await withFixture({ [POSITION_KEY]: String(COUNT - 1) }, async (page) => {
+		await page.tap(FAR_RIGHT);
+		await swipe(page, { x: 330, y: 760 }, { x: 150, y: 770 });
+		await pressKey(page, 'PageDown');
+		await sleep(400);
+		assert.equal(await current(page), COUNT - 1, 'pas de retour au début par erreur');
+		assert.deepEqual(await actions(page), { button: true, bar: null });
+
+		await page.tap(await buttonCenter(page));
+		await expectSlide(page, 0);
+		await sleep(400);
+		assert.equal(await current(page), 0);
+		assert.equal(await page.evaluate(`localStorage.getItem('${POSITION_KEY}')`), '0', 'position enregistrée');
 	});
 });
 

@@ -14,6 +14,8 @@
  *          la slide reste alors affichée jusqu'au tap suivant
  *   bouton texte d'un bouton, ex. 'Lancer l\'analyse' : passe à la slide suivante à l'appui
  *          (avec un chargement sur la même slide, c'est lui qui démarre)
+ *   boutonVers  numéro de la slide où mène le bouton, ex. 1 pour 'Recommencer'
+ *          (par défaut la suivante ; un bouton qui ramène en arrière ne réagit qu'à un vrai appui)
  *   note   note pour l'artiste, visible seulement si « Afficher les notes » est activé
  *
  * Le texte s'adapte tout seul à la taille de l'écran. Une erreur (slide vide, image absente,
@@ -87,5 +89,8 @@ export const SLIDES: readonly Slide[] = [
 		titre: '**Merci**',
 		image: 'images/logo.svg',
 		texte: 'd\'avoir utilisé l\'Analyseur Q',
+		bouton: 'Recommencer',
+		boutonVers: 1,
+		note: 'Le bouton revient à la première slide (un tap à droite ne le déclenche pas).',
 	},
 ];

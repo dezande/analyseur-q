@@ -196,14 +196,17 @@ let preparedIndex = -1;
 /** La slide courante a un bouton pas encore appuyé. */
 let waitingForButton = false;
 
+/** Slide où mène la slide `i` après son bouton ou son chargement : `boutonVers`, sinon la suivante. */
+const destination = (i: number): number => (SLIDES[i]?.boutonVers ?? i + 2) - 1;
+
 /**
- * Lance le chargement de la slide `i`, ou passe directement à la suivante si elle n'en a pas.
- * À 100 % : message `termine` affiché (la slide reste), sinon slide suivante.
+ * Lance le chargement de la slide `i`, ou passe directement à sa destination si elle n'en a pas.
+ * À 100 % : message `termine` affiché (la slide reste), sinon destination.
  */
 function launch(i: number): void {
 	const slide = SLIDES[i];
 	if (slide?.chargement === undefined) {
-		goTo(i + 1);
+		goTo(destination(i));
 		return;
 	}
 	const done = slideEls[i].querySelector<HTMLElement>('.chargement-termine');
@@ -211,7 +214,7 @@ function launch(i: number): void {
 	startLoading(slideEls[i], slide.chargement, () => {
 		if (index !== i) return;
 		if (done) done.hidden = false;
-		else goTo(i + 1);
+		else goTo(destination(i));
 	});
 }
 
@@ -285,8 +288,9 @@ export function goTo(target: number): void {
 /** Déplacement demandé par un geste ou une touche. Sur écran noir, il ne fait que rallumer. */
 export function move(m: Move): void {
 	if (isBlack()) setBlack(false);
-	// Bouton qui attend : « suivante » appuie dessus, pour ne jamais sauter l'analyse par erreur.
-	else if (m === 'next' && waitingForButton) pressButton();
+	// Bouton qui attend et mène en avant : « suivante » appuie dessus, pour ne jamais sauter l'analyse
+	// par erreur. Un bouton qui ramène en arrière (Recommencer) n'est actionné que par un vrai appui.
+	else if (m === 'next' && waitingForButton && destination(index) > index) pressButton();
 	else goTo(applyMove(index, m, slideCount));
 }
 

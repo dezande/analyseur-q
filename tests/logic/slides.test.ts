@@ -62,7 +62,18 @@ test('checkSlides : bouton', () => {
 	const none = (): boolean => false;
 	assert.deepEqual(checkSlides([{ bouton: 'Lancer l\'analyse', chargement: 5 }, { titre: 'suite' }], none), [], 'un bouton seul suffit');
 	assert.deepEqual(checkSlides([{ titre: 'x', bouton: '  ' }, { titre: 'suite' }], none), ['slide 1 : bouton sans texte']);
-	assert.deepEqual(checkSlides([{ titre: 'x' }, { titre: 'fin', bouton: 'Suivant' }], none), ['slide 2 : bouton sur la dernière slide, il n\'y a pas de slide suivante']);
+	assert.deepEqual(checkSlides([{ titre: 'x' }, { titre: 'fin', bouton: 'Suivant' }], none), ['slide 2 : bouton sur la dernière slide, il n\'y a pas de slide suivante (indiquer boutonVers)']);
+});
+
+test('checkSlides : boutonVers', () => {
+	const none = (): boolean => false;
+	assert.deepEqual(checkSlides([{ titre: 'x' }, { titre: 'fin', bouton: 'Recommencer', boutonVers: 1 }], none), [], 'bouton Recommencer sur la dernière slide');
+	assert.deepEqual(checkSlides([{ titre: 'x', boutonVers: 2 }, { titre: 'y' }], none), ['slide 1 : boutonVers sans bouton']);
+	for (const target of [0, 3, 1.5, '1']) {
+		const errors = checkSlides([{ titre: 'x' }, { titre: 'fin', bouton: 'B', boutonVers: target as number }], none);
+		assert.equal(errors.length, 1, String(target));
+		assert.match(errors[0], /boutonVers doit être un numéro de slide entre 1 et 2/);
+	}
 });
 
 test('checkSlides : message termine', () => {

@@ -33,6 +33,12 @@ export interface Slide {
 	 * (tap à droite, glissement, télécommande) appuie dessus au lieu de sauter la slide.
 	 */
 	bouton?: string;
+	/**
+	 * Numéro de la slide où mène le bouton (1 = la première), ex. 1 pour « Recommencer ».
+	 * Par défaut, la slide suivante. Un bouton qui ramène en arrière n'est actionné que par un appui :
+	 * « slide suivante » ne le déclenche pas, pour ne jamais recommencer par erreur.
+	 */
+	boutonVers?: number;
 	/** Note pour l'artiste : visible seulement si « Afficher les notes » est activé. */
 	note?: string;
 }
@@ -79,7 +85,7 @@ export function slideLabel(slide: Slide): string {
 	return flat.length > LABEL_MAX ? `${flat.slice(0, LABEL_MAX - 1)}…` : flat;
 }
 
-const FIELDS: readonly (keyof Slide)[] = ['etiquette', 'titre', 'grand', 'texte', 'image', 'chargement', 'termine', 'bouton', 'note'];
+const FIELDS: readonly (keyof Slide)[] = ['etiquette', 'titre', 'grand', 'texte', 'image', 'chargement', 'termine', 'bouton', 'boutonVers', 'note'];
 
 /**
  * Erreurs du contenu, une par ligne lisible (liste vide si tout va bien).
@@ -101,7 +107,16 @@ export function checkSlides(slides: readonly Slide[], imageExists: (path: string
 		}
 		if (slide.bouton !== undefined) {
 			if (typeof slide.bouton !== 'string' || !slide.bouton.trim()) errors.push(`${where} : bouton sans texte`);
-			if (i === slides.length - 1 && slide.chargement === undefined) errors.push(`${where} : bouton sur la dernière slide, il n'y a pas de slide suivante`);
+			if (i === slides.length - 1 && slide.chargement === undefined && slide.boutonVers === undefined) {
+				errors.push(`${where} : bouton sur la dernière slide, il n'y a pas de slide suivante (indiquer boutonVers)`);
+			}
+		}
+		if (slide.boutonVers !== undefined) {
+			const target = slide.boutonVers;
+			if (!slide.bouton) errors.push(`${where} : boutonVers sans bouton`);
+			if (typeof target !== 'number' || !Number.isInteger(target) || target < 1 || target > slides.length) {
+				errors.push(`${where} : boutonVers doit être un numéro de slide entre 1 et ${slides.length} (reçu « ${String(target)} »)`);
+			}
 		}
 		if (slide.chargement !== undefined) {
 			const seconds = slide.chargement;
