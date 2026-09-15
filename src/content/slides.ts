@@ -52,12 +52,24 @@ export const SLIDES: readonly Slide[] = [
 		texte: 'cartes face en bas',
 	},
 	{
-		texte: 'Une slide avec seulement du texte, plus long, pour vérifier que la taille des caractères s\'adapte à l\'écran. '
-			+ 'Tant que tout tient, le texte reste grand ; quand il y en a beaucoup, il rétrécit pour ne jamais sortir de l\'écran.\n\n'
-			+ 'Le texte est centré.\nLes retours à la ligne sont conservés.',
+		grand: '13',
+		texte: 'cartes rouges',
 	},
 	{
-		titre: 'Fin',
-		note: 'Dernière slide : un tap de plus ne revient pas au début.',
+		image: 'images/royal-flush-coeur.svg',
+		texte: 'On peut faire un **royal flush à cœur**',
+	},
+	{
+		texte: 'Les autres cartes rouges\nsont des **carreaux**.',
+	},
+	{
+		texte: 'Les cartes noires sont toutes\ndes **cartes numérotées** :\naucune figure.',
+	},
+	{
+		texte: 'Ce sont toutes\ndes cartes paires...',
+	},
+	{
+		image: 'images/3-de-pique.svg',
+		texte: 'sauf le **3 de pique**',
 	},
 ];
