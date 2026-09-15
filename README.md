@@ -3,7 +3,7 @@
 Analyseur d'ondes quantiques des cartes à jouer, modèle AQ-52.
 
 Diaporama plein écran pour accompagner la routine Rain Man de Leonard Green, en français, dans l'habillage d'un faux appareil pseudo-scientifique.
-Le dépôt et l'adresse gardent le nom `rain-man` : changer l'adresse casserait l'app déjà installée sur les téléphones.
+Projet anciennement nommé `rain-man` (adresse `dezande.github.io/rain-man/`, qui ne fonctionne plus) : les réglages enregistrés sous l'ancien nom sont repris.
 Une PWA mono-page, 100 % hors-ligne, pilotée au doigt, au clavier ou avec une télécommande de présentation.
 
 ## Écrire les slides
@@ -80,16 +80,16 @@ Sur iPhone, l'app installée a son propre stockage, séparé de Safari : **ouvre
 
 ### Vérifier sur le téléphone avant de jouer
 
-1. **Hors-ligne** : ouvrir l'app installée avec du réseau, ouvrir le menu (appui de 3 s) et vérifier que « Cache hors-ligne » affiche un nom `rain-man-…`. Fermer l'app (la faire glisser vers le haut dans le sélecteur d'apps), passer en mode avion, la rouvrir, faire défiler toutes les slides.
+1. **Hors-ligne** : ouvrir l'app installée avec du réseau, ouvrir le menu (appui de 3 s) et vérifier que « Cache hors-ligne » affiche un nom `analyseur-q-…`. Fermer l'app (la faire glisser vers le haut dans le sélecteur d'apps), passer en mode avion, la rouvrir, faire défiler toutes les slides.
 2. **Écran allumé** : dans Réglages → Luminosité et affichage → Verrouillage automatique, choisir 30 secondes. Ouvrir l'app, toucher une fois l'écran, puis ne plus y toucher pendant 2 minutes : l'écran ne doit ni baisser ni s'éteindre. Refaire le test en mode économie d'énergie, qui peut couper la vidéo. Remettre ensuite le verrouillage automatique habituel.
 3. **Portrait** : tourner le téléphone dans les deux sens : l'affichage reste dans l'axe du téléphone, les taps à droite (côté droit du téléphone) avancent toujours.
 4. **Version** : après une publication, rouvrir l'app avec du réseau, la fermer et la rouvrir : le menu doit afficher le nouveau numéro de version et un nouveau nom de cache, et les réglages (transition, aides masquées) doivent être restés les mêmes.
 
 ## Publication
 
-**Chaque push sur `main` met l'app à jour** (https://dezande.github.io/rain-man/). GitHub Actions vérifie les types, lance les tests unitaires, compile, puis teste l'app compilée dans Chrome. Si tout passe, il déploie sur GitHub Pages ; sinon, rien n'est publié.
+**Chaque push sur `main` met l'app à jour** (https://dezande.github.io/analyseur-q/). GitHub Actions vérifie les types, lance les tests unitaires, compile, puis teste l'app compilée dans Chrome. Si tout passe, il déploie sur GitHub Pages ; sinon, rien n'est publié.
 
-Le nom du cache hors-ligne est une empreinte de tous les fichiers de `dist/`, **numéro de version compris** : chaque nouvelle version change ce nom, même si seul le numéro a changé, et les téléphones retéléchargent tout ; l'ancien cache est supprimé. Sans changement, le nom reste le même et rien n'est retéléchargé. La liste des fichiers mis en cache est elle aussi calculée au build : rien à mettre à jour à la main, même en ajoutant une image.
+Le nom du cache hors-ligne est une empreinte de tous les fichiers de `dist/`, **numéro de version compris** : chaque nouvelle version change ce nom, même si seul le numéro a changé, et les téléphones retéléchargent tout ; l'ancien cache est supprimé. Seuls les caches de cette app sont supprimés : les autres apps publiées sur `dezande.github.io` (même origine, donc mêmes caches) ne sont pas touchées. Sans changement, le nom reste le même et rien n'est retéléchargé. La liste des fichiers mis en cache est elle aussi calculée au build : rien à mettre à jour à la main, même en ajoutant une image.
 
 Une nouvelle version s'installe dès que l'app est ouverte avec du réseau. Si personne n'a touché l'écran depuis l'ouverture, l'app se recharge aussitôt ; sinon elle garde la version en cours jusqu'à l'ouverture suivante : jamais de rechargement en pleine routine.
 

@@ -49,7 +49,7 @@ export class Browser {
 
 	/** Lance Chrome sans interface, avec un profil vierge et temporaire (et `extraArgs` en plus). */
 	static async launch(extraArgs: string[] = []): Promise<Browser> {
-		const profileDir = mkdtempSync(join(tmpdir(), 'rain-man-e2e-'));
+		const profileDir = mkdtempSync(join(tmpdir(), 'analyseur-q-e2e-'));
 		const args = [
 			'--headless=new',
 			'--remote-debugging-port=0', // port libre, annoncé sur la sortie d'erreur

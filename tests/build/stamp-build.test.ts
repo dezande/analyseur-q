@@ -12,7 +12,7 @@ const SCRIPT = resolve('scripts/stamp-build.ts');
 
 /** Dépôt temporaire avec un dist/ non tamponné, comme juste après la compilation. */
 function makeRepo(): string {
-	const dir = mkdtempSync(join(tmpdir(), 'rain-man-stamp-'));
+	const dir = mkdtempSync(join(tmpdir(), 'analyseur-q-stamp-'));
 	git(dir, 'init', '-q', '-b', 'main');
 	writeFileSync(join(dir, '.gitignore'), 'dist/\n');
 	git(dir, 'add', '.');
@@ -32,7 +32,7 @@ function stamp(dir: string, appCode = 'console.log("app");'): { cache: string; a
 	writeFileSync(join(dir, 'dist', 'app.js'), appCode);
 	writeFileSync(join(dir, 'dist', '.DS_Store'), 'x');
 	writeFileSync(join(dir, 'dist', 'system', 'build.js'), "export const BUILD = { version: '__APP_VERSION__', commit: '__APP_COMMIT__' };");
-	writeFileSync(join(dir, 'dist', 'sw.js'), "const CACHE = 'rain-man-__BUILD_HASH__';\nconst ASSETS = ['__ASSETS__'];");
+	writeFileSync(join(dir, 'dist', 'sw.js'), "const CACHE = 'analyseur-q-__BUILD_HASH__';\nconst ASSETS = ['__ASSETS__'];");
 	execFileSync(process.execPath, [SCRIPT], { cwd: dir, stdio: 'pipe' });
 	const sw = readFileSync(join(dir, 'dist', 'sw.js'), 'utf8');
 	return {
@@ -48,7 +48,7 @@ test('version, commit et liste des fichiers inscrits dans le build', () => {
 		const result = stamp(dir);
 		assert.match(result.build, /version: '1'/);
 		assert.match(result.build, new RegExp(`commit: '${git(dir, 'rev-parse', '--short=7', 'HEAD')}'`));
-		assert.match(result.cache, /^rain-man-[0-9a-f]{12}$/);
+		assert.match(result.cache, /^analyseur-q-[0-9a-f]{12}$/);
 		assert.equal(result.assets, "'./', './app.js', './index.html', './system/build.js'", 'fichiers cachés et sw.js exclus');
 	} finally {
 		rmSync(dir, { recursive: true, force: true });

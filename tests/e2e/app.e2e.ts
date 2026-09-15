@@ -15,8 +15,11 @@ import { SLIDES } from '../../src/content/slides.ts';
 import { Browser, SCREEN, type Page, type Point } from './chrome.ts';
 
 /** Clés d'enregistrement (src/settings/store.ts). */
-const SETTINGS_KEY = 'rain-man:settings:v1';
-const POSITION_KEY = 'rain-man:position:v1';
+const SETTINGS_KEY = 'analyseur-q:settings:v1';
+const POSITION_KEY = 'analyseur-q:position:v1';
+/** Clés d'avant le renommage du projet (rain-man). */
+const LEGACY_SETTINGS_KEY = 'rain-man:settings:v1';
+const LEGACY_POSITION_KEY = 'rain-man:position:v1';
 const TEST_TIMEOUT = { timeout: 60_000 };
 const COUNT = SLIDES.length;
 
@@ -290,6 +293,18 @@ test('menu : aides visuelles et transition, appliquées et enregistrées', TEST_
 	});
 });
 
+test('ancien nom du projet : réglages et position de rain-man repris', TEST_TIMEOUT, async () => {
+	const legacy = { transition: 'aucune', showCounter: false, showProgress: false, showNotes: true, showHoldRing: true };
+	await withApp({ [LEGACY_SETTINGS_KEY]: JSON.stringify(legacy), [LEGACY_POSITION_KEY]: '2' }, async (page) => {
+		assert.equal(await current(page), 2);
+		assert.equal(await page.evaluate(`document.querySelector('#deck').dataset.transition`), 'aucune');
+		// Au premier changement, tout est enregistré sous les nouvelles clés.
+		await page.tap(RIGHT);
+		await expectSlide(page, 3);
+		assert.equal(await page.evaluate(`localStorage.getItem('${POSITION_KEY}')`), '3');
+	});
+});
+
 test('réglages abîmés : l’app démarre avec les réglages par défaut', TEST_TIMEOUT, async () => {
 	for (const raw of ['{pas du JSON', '"texte"', JSON.stringify({ transition: 'zoom', showNotes: 'oui' })]) {
 		await withApp({ [SETTINGS_KEY]: raw }, async (page) => {
@@ -485,7 +500,7 @@ test('écran allumé : verrou demandé et vidéo muette en marche après un touc
 
 /** Copie de dist/ servie à part, où l'on « publie » ensuite une nouvelle version. */
 async function withSiteCopy(run: (dir: string, site: StaticServer) => Promise<void>): Promise<void> {
-	const dir = mkdtempSync(join(tmpdir(), 'rain-man-update-'));
+	const dir = mkdtempSync(join(tmpdir(), 'analyseur-q-update-'));
 	cpSync('dist', dir, { recursive: true });
 	const site = await startStaticServer(dir, 0);
 	try {
@@ -503,7 +518,7 @@ async function withSiteCopy(run: (dir: string, site: StaticServer) => Promise<vo
 function publishNewVersion(dir: string, version: string): [string, string] {
 	const sw = join(dir, 'sw.js');
 	const oldCache = readFileSync(sw, 'utf8').match(/const CACHE = '([^']+)'/)?.[1] ?? '';
-	const newCache = `rain-man-version${version}`;
+	const newCache = `analyseur-q-version${version}`;
 	const build = join(dir, 'system', 'build.js');
 	writeFileSync(build, readFileSync(build, 'utf8').replace(/version: '[^']*'/, `version: '${version}'`));
 	writeFileSync(sw, readFileSync(sw, 'utf8').replace(oldCache, newCache));
@@ -540,8 +555,10 @@ test('nouvelle version publiée, écran pas touché : nouveau cache, ancien supp
 	await withSiteCopy(async (dir, site) => {
 		await withApp({ [SETTINGS_KEY]: JSON.stringify(CUSTOM_SETTINGS), [POSITION_KEY]: '2' }, async (page) => {
 			await page.waitFor(`navigator.serviceWorker.controller`, 'service worker actif', 15_000);
+			// Même origine que les autres apps de dezande.github.io : leurs caches doivent survivre.
+			await page.evaluate(`Promise.all([caches.open('voyante-autre-app'), caches.open('rain-man-ancien-nom')])`);
 			const [oldCache, newCache] = publishNewVersion(dir, '9999');
-			assert.deepEqual(await page.evaluate(`caches.keys()`), [oldCache]);
+			assert.deepEqual((await page.evaluate<string[]>(`caches.keys()`)).sort(), [oldCache, 'rain-man-ancien-nom', 'voyante-autre-app'].sort());
 
 			// Ce que fait l'app au retour au premier plan : chercher une mise à jour.
 			await page.evaluate(`window.__pageAvantMiseAJour = true`);
@@ -550,7 +567,7 @@ test('nouvelle version publiée, écran pas touché : nouveau cache, ancien supp
 			await pressKey(page, 'm');
 			await page.waitFor(`${MENU_VERSION} === 'Version 9999'`, 'nouvelle version affichée', 5000, MENU_VERSION);
 			await page.waitFor(`document.querySelector('#about-cache').textContent === ${JSON.stringify(newCache)}`, 'nouveau cache dans le menu', 5000, `document.querySelector('#about-cache').textContent`);
-			assert.deepEqual(await page.evaluate(`caches.keys()`), [newCache], 'seul le nouveau cache reste');
+			assert.deepEqual((await page.evaluate<string[]>(`caches.keys()`)).sort(), [newCache, 'voyante-autre-app'].sort(), 'nos anciens caches supprimés, celui de l’autre app intact');
 			await expectCustomSettingsKept(page);
 			assert.equal(await current(page), 2, 'position conservée');
 		}, site.url);

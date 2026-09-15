@@ -65,4 +65,4 @@ for (const file of files) {
 const buildHash = hash.digest('hex').slice(0, 12);
 replaceIn('sw.js', '__BUILD_HASH__', buildHash);
 
-console.log(`Version ${version} (${commitLabel}), ${files.length} fichiers, cache rain-man-${buildHash}`);
+console.log(`Version ${version} (${commitLabel}), ${files.length} fichiers, cache analyseur-q-${buildHash}`);

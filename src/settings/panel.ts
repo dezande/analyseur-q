@@ -70,13 +70,13 @@ function refresh(): void {
 }
 
 /**
- * Nom du cache hors-ligne (rain-man-<empreinte>). L'empreinte change à chaque nouvelle version :
+ * Nom du cache hors-ligne (analyseur-q-<empreinte>). L'empreinte change à chaque nouvelle version :
  * c'est ce qui fait retélécharger l'app aux téléphones où elle est installée.
  */
 async function showCache(): Promise<void> {
 	const cell = $('#about-cache');
 	const controlled = 'serviceWorker' in navigator && Boolean(navigator.serviceWorker.controller);
-	const names = 'caches' in window ? (await caches.keys().catch(() => [])).filter((name) => name.startsWith('rain-man-')) : [];
+	const names = 'caches' in window ? (await caches.keys().catch(() => [])).filter((name) => name.startsWith('analyseur-q-')) : [];
 	cell.textContent = !controlled || names.length === 0 ? 'inactif' : names.join(', ');
 }
 
