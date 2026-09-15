@@ -341,7 +341,10 @@ test('texte trop long : il rétrécit pour tenir', TEST_TIMEOUT, async () => {
 	await withApp({}, async (page) => {
 		const fit = await page.evaluate<number>(`(() => {
 			const slide = document.querySelector('.slide');
-			slide.querySelector('.slide-body').insertAdjacentText('beforeend', ' mot'.repeat(400));
+			// Un bloc de texte comme ceux de deck.ts, quel que soit le contenu de la slide.
+			const texte = slide.querySelector('.slide-body').appendChild(document.createElement('div'));
+			texte.className = 'texte';
+			texte.appendChild(document.createElement('p')).textContent = 'mot '.repeat(400);
 			window.dispatchEvent(new Event('resize'));
 			return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(Number(slide.style.getPropertyValue('--fit'))))));
 		})()`);
