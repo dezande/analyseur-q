@@ -52,9 +52,12 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
 	// Nouvelle version installée : on recharge pour l'afficher, mais seulement si personne n'a
 	// touché l'écran depuis l'ouverture (ou le retour au premier plan) : jamais en pleine routine.
 	// La slide en cours est enregistrée, elle serait de toute façon reprise.
-	const hadController = Boolean(navigator.serviceWorker.controller);
+	// Au tout premier chargement, la prise en main par le premier service worker n'est pas une
+	// nouvelle version : rien à recharger. Les suivantes, si.
+	let hadController = Boolean(navigator.serviceWorker.controller);
 	navigator.serviceWorker.addEventListener('controllerchange', () => {
 		if (hadController && !wasTouchedSinceShown() && !isMenuOpen()) location.reload();
+		hadController = true;
 	});
 	window.addEventListener('load', () => {
 		navigator.serviceWorker.register('sw.js').catch(() => {});

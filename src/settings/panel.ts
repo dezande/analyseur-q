@@ -59,10 +59,20 @@ function refresh(): void {
 	$('#menu-position').textContent = counterLabel(current, slideCount);
 	$('#menu-version').textContent = `Version ${BUILD.version}`;
 	$('#about-version').textContent = `${BUILD.version} (${BUILD.commit})`;
-	const controller = 'serviceWorker' in navigator && navigator.serviceWorker.controller;
-	$('#about-cache').textContent = controller ? 'actif' : 'inactif';
+	void showCache();
 	const standalone = matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || (navigator as { standalone?: boolean }).standalone === true;
 	$('#about-display').textContent = standalone ? 'app installée' : 'navigateur';
+}
+
+/**
+ * Nom du cache hors-ligne (rain-man-<empreinte>). L'empreinte change à chaque nouvelle version :
+ * c'est ce qui fait retélécharger l'app aux téléphones où elle est installée.
+ */
+async function showCache(): Promise<void> {
+	const cell = $('#about-cache');
+	const controlled = 'serviceWorker' in navigator && Boolean(navigator.serviceWorker.controller);
+	const names = 'caches' in window ? (await caches.keys().catch(() => [])).filter((name) => name.startsWith('rain-man-')) : [];
+	cell.textContent = !controlled || names.length === 0 ? 'inactif' : names.join(', ');
 }
 
 export function openMenu(): void {

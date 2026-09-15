@@ -47,8 +47,8 @@ export class Browser {
 		this.#endpoint = endpoint;
 	}
 
-	/** Lance Chrome sans interface, avec un profil vierge et temporaire. */
-	static async launch(): Promise<Browser> {
+	/** Lance Chrome sans interface, avec un profil vierge et temporaire (et `extraArgs` en plus). */
+	static async launch(extraArgs: string[] = []): Promise<Browser> {
 		const profileDir = mkdtempSync(join(tmpdir(), 'rain-man-e2e-'));
 		const args = [
 			'--headless=new',
@@ -58,6 +58,7 @@ export class Browser {
 			'--no-default-browser-check',
 			'--disable-extensions',
 			'--disable-dev-shm-usage',
+			...extraArgs,
 			'about:blank',
 		];
 		// Sous Linux (GitHub Actions), le bac à sable de Chrome n'est pas disponible.

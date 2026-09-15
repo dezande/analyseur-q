@@ -6,7 +6,9 @@
 // et l'installation sur l'écran d'accueil.
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { startStaticServer, type StaticServer } from '../../scripts/static-server.ts';
 import { SLIDES } from '../../src/content/slides.ts';
@@ -353,7 +355,109 @@ test('texte trop long : il rétrécit pour tenir', TEST_TIMEOUT, async () => {
 	});
 });
 
-/* ================= Hors-ligne ================= */
+/* ================= Écran allumé ================= */
+
+test('écran allumé : verrou demandé et vidéo muette en marche après un toucher', TEST_TIMEOUT, async () => {
+	await withApp({}, async (page) => {
+		await page.tap(CENTER);
+		await page.waitFor(`!document.querySelector('#keep-awake').paused`, 'vidéo muette en lecture', 5000);
+		await page.waitFor(`document.querySelector('#wake-dot').className !== 'dot off'`, 'verrou actif', 5000);
+		assert.match(await text(page, '#wake-text'), /verrou actif/);
+		// Les deux moyens restent actifs ensemble quand l'API est disponible (iPhone avant iOS 18.4).
+		if (await page.evaluate<boolean>(`document.querySelector('#wake-dot').className === 'dot lock'`)) {
+			assert.equal(await text(page, '#wake-detail'), 'Screen Wake Lock API + vidéo muette en boucle');
+		}
+	});
+});
+
+/* ================= Hors-ligne et mises à jour ================= */
+
+/** Copie de dist/ servie à part, où l'on « publie » ensuite une nouvelle version. */
+async function withSiteCopy(run: (dir: string, site: StaticServer) => Promise<void>): Promise<void> {
+	const dir = mkdtempSync(join(tmpdir(), 'rain-man-update-'));
+	cpSync('dist', dir, { recursive: true });
+	const site = await startStaticServer(dir, 0);
+	try {
+		await run(dir, site);
+	} finally {
+		await site.close();
+		rmSync(dir, { recursive: true, force: true });
+	}
+}
+
+/**
+ * Publie une nouvelle version dans la copie : numéro différent, donc empreinte et nom du cache différents
+ * (voir tests/build/stamp-build.test.ts). Renvoie [ancien cache, nouveau cache].
+ */
+function publishNewVersion(dir: string, version: string): [string, string] {
+	const sw = join(dir, 'sw.js');
+	const oldCache = readFileSync(sw, 'utf8').match(/const CACHE = '([^']+)'/)?.[1] ?? '';
+	const newCache = `rain-man-version${version}`;
+	const build = join(dir, 'system', 'build.js');
+	writeFileSync(build, readFileSync(build, 'utf8').replace(/version: '[^']*'/, `version: '${version}'`));
+	writeFileSync(sw, readFileSync(sw, 'utf8').replace(oldCache, newCache));
+	return [oldCache, newCache];
+}
+
+/** Attend que la page ait été rechargée (marqueur __pageAvantMiseAJour disparu) et l'app redémarrée. */
+async function waitForReload(page: Page, timeoutMs = 15_000): Promise<void> {
+	const deadline = Date.now() + timeoutMs;
+	while (Date.now() < deadline) {
+		try {
+			// Pendant le rechargement, l'évaluation peut échouer : on réessaie.
+			if (await page.evaluate<boolean>(`!window.__pageAvantMiseAJour && document.querySelectorAll('#deck .slide').length > 0`)) return;
+		} catch {
+			// Contexte de la page en cours de remplacement.
+		}
+		await sleep(100);
+	}
+	throw new Error('Attente dépassée : rechargement automatique après la mise à jour');
+}
+
+const MENU_VERSION = `document.querySelector('#menu-version').textContent`;
+
+test('nouvelle version publiée, écran pas touché : nouveau cache, ancien supprimé, rechargement automatique', TEST_TIMEOUT, async () => {
+	await withSiteCopy(async (dir, site) => {
+		await withApp({}, async (page) => {
+			await page.waitFor(`navigator.serviceWorker.controller`, 'service worker actif', 15_000);
+			const [oldCache, newCache] = publishNewVersion(dir, '9999');
+			assert.deepEqual(await page.evaluate(`caches.keys()`), [oldCache]);
+
+			// Ce que fait l'app au retour au premier plan : chercher une mise à jour.
+			await page.evaluate(`window.__pageAvantMiseAJour = true`);
+			await page.evaluate(`navigator.serviceWorker.getRegistration().then((r) => r.update())`);
+			await waitForReload(page);
+			await pressKey(page, 'm');
+			await page.waitFor(`${MENU_VERSION} === 'Version 9999'`, 'nouvelle version affichée', 5000, MENU_VERSION);
+			await page.waitFor(`document.querySelector('#about-cache').textContent === ${JSON.stringify(newCache)}`, 'nouveau cache dans le menu', 5000, `document.querySelector('#about-cache').textContent`);
+			assert.deepEqual(await page.evaluate(`caches.keys()`), [newCache], 'seul le nouveau cache reste');
+		}, site.url);
+	});
+});
+
+test('nouvelle version publiée pendant l’utilisation : pas de rechargement, nouvelle version à l’ouverture suivante', TEST_TIMEOUT, async () => {
+	await withSiteCopy(async (dir, site) => {
+		await withApp({}, async (page) => {
+			await page.waitFor(`navigator.serviceWorker.controller`, 'service worker actif', 15_000);
+			await page.tap(RIGHT); // en pleine routine
+			await expectSlide(page, 1);
+			await page.evaluate(`window.__pageAvantMiseAJour = true`);
+			const [, newCache] = publishNewVersion(dir, '8888');
+			await page.evaluate(`navigator.serviceWorker.getRegistration().then((r) => r.update())`);
+			await page.waitFor(`caches.keys().then((keys) => keys.length === 1 && keys[0] === ${JSON.stringify(newCache)})`, 'nouveau cache installé', 15_000);
+			await sleep(1000);
+			assert.equal(await page.evaluate(`window.__pageAvantMiseAJour === true`), true, 'pas de rechargement en pleine routine');
+			assert.equal(await current(page), 1);
+
+			// Ouverture suivante : nouvelle version, à la même slide.
+			await page.reload();
+			await page.waitFor(`document.querySelectorAll('#deck .slide').length > 0`, 'app rouverte');
+			assert.equal(await current(page), 1);
+			await pressKey(page, 'm');
+			await page.waitFor(`${MENU_VERSION} === 'Version 8888'`, 'nouvelle version à l’ouverture suivante', 5000, MENU_VERSION);
+		}, site.url);
+	});
+});
 
 test('hors-ligne : une fois ouverte, l’app redémarre serveur arrêté', TEST_TIMEOUT, async () => {
 	const offlineServer = await startStaticServer('dist', 0);

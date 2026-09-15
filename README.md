@@ -52,7 +52,11 @@ On s'arrête à la dernière slide : un tap de trop ne ramène jamais au début.
 | Échap ou M | Menu |
 | B ou « . » | Écran noir (un tap ou une touche le rallume, sans changer de slide) |
 
-Le **menu** permet d'aller directement à une slide, de recommencer au début, de choisir la transition (fondu, glisse, aucune) et de masquer les aides visuelles : numéro de slide, barre de progression, notes, jauge de l'appui long. Toutes sont visibles par défaut : masquez-les avant de jouer si le public voit l'écran. Le numéro de version (nombre de commits) est affiché sous le titre du menu, pour vérifier que le téléphone a bien la dernière version ; le bas du menu détaille le commit, l'état du maintien de l'écran allumé et le cache hors-ligne.
+Le **menu** permet d'aller directement à une slide, de recommencer au début, de choisir la transition (fondu, glisse, aucune) et de masquer les aides visuelles : numéro de slide, barre de progression, notes, jauge de l'appui long. Toutes sont visibles par défaut : masquez-les avant de jouer si le public voit l'écran. Le numéro de version (nombre de commits) est affiché sous le titre du menu, pour vérifier que le téléphone a bien la dernière version ; le bas du menu détaille le commit, l'état du maintien de l'écran allumé et le nom du cache hors-ligne.
+
+### Écran toujours allumé
+
+Deux moyens actifs en même temps, relancés à chaque toucher et à chaque retour au premier plan : l'API Screen Wake Lock et une vidéo muette invisible jouée en boucle. La vidéo reste active même quand l'API répond : sur iPhone avant iOS 18.4, dans l'app installée sur l'écran d'accueil, l'API accepte la demande sans garder l'écran allumé. Le menu indique « Screen Wake Lock API + vidéo muette en boucle » quand les deux tournent.
 
 La slide en cours et les réglages sont enregistrés sur l'appareil : si l'app est fermée par erreur, elle reprend là où elle en était.
 
@@ -63,13 +67,21 @@ L'app doit être servie en HTTPS (GitHub Pages convient ; tous les chemins sont 
 - **iOS** : Safari → Partager → *Sur l'écran d'accueil*.
 - **Android** : Chrome → menu → *Installer l'application*.
 
-Pour vérifier le fonctionnement hors-ligne, relancez l'app en mode avion.
+Sur iPhone, l'app installée a son propre stockage, séparé de Safari : **ouvrez-la une fois depuis l'écran d'accueil avec du réseau**, pour qu'elle se mette en cache. Ensuite elle démarre sans réseau.
+
+### Vérifier sur le téléphone avant de jouer
+
+1. **Hors-ligne** : ouvrir l'app installée avec du réseau, ouvrir le menu (appui de 3 s) et vérifier que « Cache hors-ligne » affiche un nom `rain-man-…`. Fermer l'app (la faire glisser vers le haut dans le sélecteur d'apps), passer en mode avion, la rouvrir, faire défiler toutes les slides.
+2. **Écran allumé** : dans Réglages → Luminosité et affichage → Verrouillage automatique, choisir 30 secondes. Ouvrir l'app, toucher une fois l'écran, puis ne plus y toucher pendant 2 minutes : l'écran ne doit ni baisser ni s'éteindre. Refaire le test en mode économie d'énergie, qui peut couper la vidéo. Remettre ensuite le verrouillage automatique habituel.
+3. **Version** : après une publication, rouvrir l'app avec du réseau, la fermer et la rouvrir : le menu doit afficher le nouveau numéro de version et un nouveau nom de cache.
 
 ## Publication
 
 **Chaque push sur `main` met l'app à jour** (https://dezande.github.io/rain-man/). GitHub Actions vérifie les types, lance les tests unitaires, compile, puis teste l'app compilée dans Chrome. Si tout passe, il déploie sur GitHub Pages ; sinon, rien n'est publié.
 
-Le nom du cache hors-ligne et la liste des fichiers mis en cache sont calculés au build à partir de `dist/` : rien à mettre à jour à la main, même en ajoutant une image. Une nouvelle version s'installe à la prochaine ouverture avec du réseau, sans jamais recharger l'écran en pleine routine.
+Le nom du cache hors-ligne est une empreinte de tous les fichiers de `dist/`, **numéro de version compris** : chaque nouvelle version change ce nom, même si seul le numéro a changé, et les téléphones retéléchargent tout ; l'ancien cache est supprimé. Sans changement, le nom reste le même et rien n'est retéléchargé. La liste des fichiers mis en cache est elle aussi calculée au build : rien à mettre à jour à la main, même en ajoutant une image.
+
+Une nouvelle version s'installe dès que l'app est ouverte avec du réseau. Si personne n'a touché l'écran depuis l'ouverture, l'app se recharge aussitôt ; sinon elle garde la version en cours jusqu'à l'ouverture suivante : jamais de rechargement en pleine routine.
 
 ```sh
 npm run deploy              # vérifie en local, pousse, suit GitHub Actions et contrôle le site
@@ -93,5 +105,6 @@ Organisation de `src/` : voir le commentaire en tête de [`src/app.ts`](src/app.
 
 ### Tests
 
+- **Tests du build** (`tests/build/`, dans `npm test`) : `scripts/stamp-build.ts` dans un dépôt git temporaire. Nouvelle version ou code modifié : nouveau nom de cache ; rien de changé : même nom.
 - **Tests unitaires** (`tests/logic/`) : la logique pure de `src/logic/` sous Node (gestes avec des rythmes lents et hésitants, navigation, touches, réglages, mise en valeur du texte) et la validité du contenu de `src/content/slides.ts`.
-- **Tests dans Chrome** (`tests/e2e/`) : l'app compilée dans Chrome sans interface, sur un écran de téléphone simulé, avec de vrais événements tactiles et clavier. Taps, tap lent, glissements, appui de 3 s et appui abandonné, deux doigts, clavier et écran noir, menu, réglages et position enregistrés, données abîmées, aucune slide qui déborde en portrait comme en paysage, fonctionnement serveur arrêté. Il faut Google Chrome, trouvé automatiquement (sinon, indiquez son chemin dans `CHROME_PATH`).
+- **Tests dans Chrome** (`tests/e2e/`) : l'app compilée dans Chrome sans interface, sur un écran de téléphone simulé, avec de vrais événements tactiles et clavier. Taps, tap lent, glissements, appui de 3 s et appui abandonné, deux doigts, clavier et écran noir, menu, réglages et position enregistrés, données abîmées, aucune slide qui déborde en portrait comme en paysage, écran allumé (verrou et vidéo), fausse barre de chargement, nouvelle version publiée (nouveau cache, ancien supprimé, rechargement seulement si l'écran n'a pas été touché), fonctionnement serveur arrêté. Il faut Google Chrome, trouvé automatiquement (sinon, indiquez son chemin dans `CHROME_PATH`).
