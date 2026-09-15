@@ -63,6 +63,7 @@ export const SLIDES: readonly Slide[] = [
 		texte: 'Les autres cartes rouges\nsont des **carreaux**.',
 	},
 	{
+		image: 'images/figure-barree.svg',
 		texte: 'Les cartes noires sont toutes\ndes **cartes numérotées** :\naucune figure.',
 	},
 	{
