@@ -27,9 +27,12 @@ Tout le texte est dans **[`src/content/slides.ts`](src/content/slides.ts)** : un
 | `texte` | Texte courant. Retour à la ligne conservé, ligne vide = nouveau paragraphe, `**mots**` = mis en valeur |
 | `image` | Fichier placé dans `public/images/` (le logo : `images/logo.svg`). Plus petite quand la slide contient aussi du texte |
 | `chargement` | Fausse barre de chargement de cette durée, en secondes (1 à 120). À 100 %, passe seule à la slide suivante |
+| `bouton` | Texte d'un gros bouton, ex. `'Lancer l\'analyse'`. Avec un chargement, la barre n'apparaît et ne démarre qu'à l'appui ; sans chargement, le bouton passe à la slide suivante |
 | `note` | Note pour l'artiste, visible seulement si « Notes pour l'artiste » est activé dans le menu |
 
-Tous les champs sont facultatifs, mais chaque slide doit afficher quelque chose (titre, grand, texte, image ou chargement).
+Tous les champs sont facultatifs, mais chaque slide doit afficher quelque chose (titre, grand, texte, image, chargement ou bouton).
+
+Tant que le bouton d'une slide n'est pas appuyé, « slide suivante » (tap à droite, glissement, télécommande) appuie dessus au lieu de sauter la slide : impossible de passer l'analyse par erreur. Sa zone de toucher déborde de 24 px autour de lui, pour un doigt imprécis. Revenir sur la slide remet le bouton.
 
 La barre de chargement avance de façon irrégulière, comme un vrai chargement (paliers, accélérations, dernier pour-cent qui traîne). Elle se met en pause tant que le menu est ouvert, que l'écran est noir ou que l'app est en arrière-plan : elle ne change jamais de slide dans votre dos. Un tap pendant le chargement change de slide normalement ; revenir sur la slide relance le chargement depuis 0. Elle ne peut pas être sur la dernière slide.
 La taille du texte s'adapte à l'écran : il rétrécit juste ce qu'il faut pour ne jamais déborder.
@@ -119,5 +122,5 @@ Organisation de `src/` : voir le commentaire en tête de [`src/app.ts`](src/app.
 ### Tests
 
 - **Tests unitaires** (`tests/logic/`) : la logique pure de `src/logic/` sous Node (gestes avec des rythmes lents et hésitants, navigation, touches, réglages, mise en valeur du texte) et la validité du contenu de `src/content/slides.ts`.
-- **Tests dans Chrome** (`tests/e2e/`) : l'app compilée dans Chrome sans interface, sur un écran de téléphone simulé, avec de vrais événements tactiles et clavier. Taps, tap lent, glissements, appui de 3 s et appui abandonné, deux doigts, clavier et écran noir, menu, réglages et position enregistrés, données abîmées, aucune slide qui déborde en portrait comme en paysage, écran allumé (verrou et vidéo), fausse barre de chargement, nouvelle version publiée (nouveau cache, ancien supprimé, réglages et position conservés, rechargement seulement si l'écran n'a pas été touché), téléphone tourné dans les deux sens (app pivotée, gestes et défilement du menu dans l'axe du téléphone), appui long sans clic parasite dans le menu, fonctionnement serveur arrêté. Il faut Google Chrome, trouvé automatiquement (sinon, indiquez son chemin dans `CHROME_PATH`).
+- **Tests dans Chrome** (`tests/e2e/`) : l'app compilée dans Chrome sans interface, sur un écran de téléphone simulé, avec de vrais événements tactiles et clavier. Taps, tap lent, glissements, appui de 3 s et appui abandonné, deux doigts, clavier et écran noir, menu, réglages et position enregistrés, données abîmées, aucune slide qui déborde en portrait comme en paysage, écran allumé (verrou et vidéo), fausse barre de chargement, bouton (l'analyse attend l'appui ; tap à côté du bouton, tap à droite, glissement ou télécommande la lancent sans sauter la slide), nouvelle version publiée (nouveau cache, ancien supprimé, réglages et position conservés, rechargement seulement si l'écran n'a pas été touché), téléphone tourné dans les deux sens (app pivotée, gestes et défilement du menu dans l'axe du téléphone), appui long sans clic parasite dans le menu, fonctionnement serveur arrêté. Il faut Google Chrome, trouvé automatiquement (sinon, indiquez son chemin dans `CHROME_PATH`).
 - Le calcul du nom de cache au build et les calculs de rotation sont testés dans le kit.

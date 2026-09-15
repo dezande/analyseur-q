@@ -23,6 +23,9 @@ const LEGACY_POSITION_KEY = 'rain-man:position:v1';
 const TEST_TIMEOUT = { timeout: 60_000 };
 const COUNT = SLIDES.length;
 
+/** Première slide simple (ni bouton ni chargement) suivie d'une autre slide simple : pour tester la navigation. */
+const PLAIN = SLIDES.findIndex((slide, i) => i + 1 < COUNT && [slide, SLIDES[i + 1]].every((s) => !s.bouton && s.chargement === undefined));
+
 const RIGHT: Point = { x: SCREEN.width - 80, y: SCREEN.height / 2 };
 const LEFT: Point = { x: 50, y: SCREEN.height / 2 };
 const CENTER: Point = { x: SCREEN.width / 2, y: SCREEN.height / 2 };
@@ -33,6 +36,7 @@ let browser: Browser;
 before(async () => {
 	if (!existsSync('dist/index.html')) throw new Error('dist/ absent : lancez « npm run build » avant les tests dans Chrome.');
 	if (COUNT < 3) throw new Error('Ces tests ont besoin d\'au moins 3 slides.');
+	if (PLAIN < 0) throw new Error('Ces tests ont besoin de deux slides simples qui se suivent (ni bouton ni chargement).');
 	server = await startStaticServer('dist', 0);
 	browser = await Browser.launch();
 });
@@ -121,18 +125,22 @@ test('position enregistrée : reprise après rechargement ; position abîmée : 
 /* ================= Gestes ================= */
 
 test('tap à droite : suivante ; tap à gauche : précédente ; bloqué aux extrémités', TEST_TIMEOUT, async () => {
-	await withApp({}, async (page) => {
+	await withApp({ [POSITION_KEY]: String(PLAIN) }, async (page) => {
+		await page.tap(RIGHT);
+		await expectSlide(page, PLAIN + 1);
+		await page.tap(LEFT);
+		await expectSlide(page, PLAIN);
+
+		await pressKey(page, 'Home');
+		await expectSlide(page, 0);
 		await page.tap(LEFT);
 		await sleep(200);
 		assert.equal(await current(page), 0, 'pas de retour avant la première slide');
-		await page.tap(RIGHT);
-		await expectSlide(page, 1);
-		await page.tap(RIGHT);
-		await expectSlide(page, 2);
-		await page.tap(LEFT);
-		await expectSlide(page, 1);
-		for (let i = 0; i < COUNT + 2; i++) await page.tap(RIGHT);
+		await pressKey(page, 'End');
 		await expectSlide(page, COUNT - 1);
+		await page.tap(RIGHT);
+		await sleep(200);
+		assert.equal(await current(page), COUNT - 1, 'pas de retour au début après la dernière slide');
 	});
 });
 
@@ -317,7 +325,7 @@ test('réglages abîmés : l’app démarre avec les réglages par défaut', TES
 /* ================= Fausse barre de chargement ================= */
 
 /** Première slide avec un chargement (content/slides.ts), et sa durée. */
-const LOADING_INDEX = SLIDES.findIndex((slide) => slide.chargement !== undefined);
+const LOADING_INDEX = SLIDES.findIndex((slide) => slide.chargement !== undefined && !slide.bouton);
 const LOADING_MS = (SLIDES[LOADING_INDEX]?.chargement ?? 0) * 1000;
 const LOADING_TEST = { timeout: 60_000 + LOADING_MS * 3, skip: LOADING_INDEX < 0 && 'aucune slide avec chargement' };
 
@@ -357,6 +365,68 @@ test('chargement : en pause menu ouvert ; relancé depuis 0 en revenant sur la s
 	});
 });
 
+/* ================= Bouton ================= */
+
+/** Première slide avec un bouton et un chargement (content/slides.ts). */
+const BUTTON_INDEX = SLIDES.findIndex((slide) => slide.bouton && slide.chargement !== undefined);
+const BUTTON_MS = (SLIDES[BUTTON_INDEX]?.chargement ?? 0) * 1000;
+const BUTTON_TEST = { timeout: 60_000 + BUTTON_MS * 2, skip: BUTTON_INDEX < 0 && 'aucune slide avec bouton et chargement' };
+
+const BUTTON_STATE = `(() => { const s = document.querySelector('.slide.current'); return { index: Number(s.dataset.index), button: !s.querySelector('.bouton').hidden, bar: !s.querySelector('.chargement').hidden }; })()`;
+/** Centre et bord droit du bouton de la slide courante, en pixels. */
+const buttonRect = (page: Page): Promise<{ x: number; y: number; right: number }> =>
+	page.evaluate(`(() => { const r = document.querySelector('.slide.current .bouton').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, right: r.right }; })()`);
+
+async function expectWaiting(page: Page): Promise<void> {
+	assert.deepEqual(await page.evaluate(BUTTON_STATE), { index: BUTTON_INDEX, button: true, bar: false }, 'bouton affiché, barre cachée, slide inchangée');
+}
+
+async function expectLaunched(page: Page): Promise<void> {
+	await page.waitFor(`${BUTTON_STATE}.bar && !${BUTTON_STATE}.button`, 'analyse lancée', 2000, BUTTON_STATE);
+	assert.equal(await current(page), BUTTON_INDEX, 'l\'appui ne saute pas la slide');
+}
+
+/** Quitte la slide du bouton et y revient : tout repart du début. */
+async function reenterButtonSlide(page: Page): Promise<void> {
+	await pressKey(page, 'ArrowLeft');
+	await expectSlide(page, BUTTON_INDEX - 1);
+	await pressKey(page, 'ArrowRight');
+	await expectSlide(page, BUTTON_INDEX);
+}
+
+test('bouton : l’analyse attend l’appui, puis passe seule à la slide suivante', BUTTON_TEST, async () => {
+	await withApp({ [POSITION_KEY]: String(BUTTON_INDEX) }, async (page) => {
+		await sleep(BUTTON_MS + 500);
+		await expectWaiting(page);
+		const { x, y } = await buttonRect(page);
+		await page.tap({ x, y });
+		await expectLaunched(page);
+		await page.waitFor(`document.querySelector('.slide.current')?.dataset.index === '${BUTTON_INDEX + 1}'`, 'slide suivante après l\'analyse', BUTTON_MS + 2000);
+	});
+});
+
+test('bouton : tap à côté du bouton (doigt imprécis), tap à droite, glissement ou télécommande lancent l’analyse sans sauter la slide', BUTTON_TEST, async () => {
+	await withApp({ [POSITION_KEY]: String(BUTTON_INDEX) }, async (page) => {
+		const rect = await buttonRect(page);
+		const actions: [string, () => Promise<void>][] = [
+			['tap juste à côté du bouton', () => page.tap({ x: rect.right + 12, y: rect.y })],
+			['tap à droite de l’écran', () => page.tap({ x: SCREEN.width - 20, y: SCREEN.height - 140 })],
+			['glissement vers la gauche', () => swipe(page, { x: 330, y: 700 }, { x: 150, y: 710 })],
+			['télécommande', () => pressKey(page, 'PageDown')],
+		];
+		for (const [label, action] of actions) {
+			await expectWaiting(page);
+			await action();
+			await expectLaunched(page).catch((error: Error) => { throw new Error(`${label} : ${error.message}`); });
+			await reenterButtonSlide(page);
+		}
+		// Revenir sur la slide remet le bouton ; reculer reste possible.
+		await expectWaiting(page);
+		await page.tap(LEFT);
+		await expectSlide(page, BUTTON_INDEX - 1);
+	});
+});
+
 /* ================= Toujours en portrait ================= */
 
 /** Téléphone tourné en paysage : vers la gauche (angle 90) ou vers la droite (angle 270). */
@@ -390,22 +460,22 @@ test('téléphone en paysage : l’app pivote et reste en portrait', TEST_TIMEOU
 test('téléphone en paysage : taps et glissements suivent le téléphone, pas l’écran', TEST_TIMEOUT, async () => {
 	const W = SCREEN.height; // largeur de l'écran en paysage
 	const H = SCREEN.width;
-	await withApp({}, async (page) => {
+	await withApp({ [POSITION_KEY]: String(PLAIN) }, async (page) => {
 		// Vers la gauche (-90°) : la droite de l'app est en haut de l'écran, sa gauche en bas.
 		await turnPhone(page, 90);
 		await page.tap({ x: W / 2, y: 40 });
-		await expectSlide(page, 1);
+		await expectSlide(page, PLAIN + 1);
 		await page.tap({ x: W / 2, y: H - 30 });
-		await expectSlide(page, 0);
+		await expectSlide(page, PLAIN);
 		await swipe(page, { x: W / 2, y: 60 }, { x: W / 2 + 10, y: 300 }); // vers la gauche de l'app
-		await expectSlide(page, 1);
+		await expectSlide(page, PLAIN + 1);
 
 		// Vers la droite (+90°) : la droite de l'app est en bas de l'écran.
 		await turnPhone(page, 270);
-		await page.tap({ x: W / 2, y: H - 40 });
-		await expectSlide(page, 2);
 		await page.tap({ x: W / 2, y: 30 });
-		await expectSlide(page, 1);
+		await expectSlide(page, PLAIN);
+		await page.tap({ x: W / 2, y: H - 40 });
+		await expectSlide(page, PLAIN + 1);
 
 		// Appui long : le menu s'ouvre, et sa liste défile dans le sens du téléphone.
 		await page.touchStart({ x: W / 2, y: H / 2 });

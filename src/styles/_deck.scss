@@ -72,7 +72,13 @@ $duration: .45s;
 	hyphens: manual;
 
 	> * + * {
-		margin-top: calc(var(--fit) * max(14px, 3.2vmin));
+		margin-top: calc(var(--fit) * max(24px, 6vmin));
+	}
+
+	// Bouton et barre de chargement : bien détachés du texte au-dessus.
+	> * + .bouton,
+	> * + .chargement {
+		margin-top: calc(var(--fit) * max(40px, 10vmin));
 	}
 }
 
@@ -104,7 +110,8 @@ $duration: .45s;
 .texte {
 	font-size: calc(var(--fit) * clamp(22px, 7vmin, 64px));
 	line-height: 1.38;
-	text-wrap: pretty;
+	// Lignes de longueurs équilibrées : pas de mot isolé sur la dernière ligne.
+	text-wrap: balance;
 
 	p {
 		margin: 0;
@@ -159,4 +166,40 @@ strong {
 	font-size: calc(var(--fit) * clamp(18px, 5vmin, 40px));
 	font-variant-numeric: tabular-nums;
 	color: $ink-soft;
+}
+
+// Bouton d'une slide (champ `bouton`) : grand, avec une zone de toucher qui déborde autour,
+// pour un doigt imprécis.
+.bouton {
+	position: relative;
+	min-height: max(56px, calc(var(--fit) * 72px));
+	padding: calc(var(--fit) * .6em) calc(var(--fit) * 1.6em);
+	border: 2px solid $accent;
+	border-radius: 999px;
+	background: rgba(247, 147, 30, .12);
+	color: $accent;
+	font: 600 calc(var(--fit) * clamp(20px, 6vmin, 36px)) / 1.1 $sans;
+	letter-spacing: .02em;
+	cursor: pointer;
+	touch-action: manipulation;
+	box-shadow: 0 0 calc(var(--fit) * 28px) rgba(247, 147, 30, .25);
+	animation: bouton-pulse 2.4s ease-in-out infinite;
+
+	// Zone de toucher agrandie de 24 px tout autour.
+	&::before {
+		content: "";
+		position: absolute;
+		inset: -24px;
+	}
+
+	&:active {
+		background: rgba(247, 147, 30, .3);
+		transform: scale(.97);
+	}
+}
+
+@keyframes bouton-pulse {
+	50% {
+		box-shadow: 0 0 calc(var(--fit) * 44px) rgba(247, 147, 30, .45);
+	}
 }

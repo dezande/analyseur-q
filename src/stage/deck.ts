@@ -58,8 +58,8 @@ function buildSlide(slide: Slide, i: number): HTMLElement {
 		img.alt = '';
 		img.decoding = 'async';
 		img.addEventListener('load', () => {
-			fitted.delete(section);
-			if (!section.classList.contains('far')) ensureFit(section);
+			if (section.classList.contains('far')) fitted.delete(section);
+			else refitSection(section);
 		});
 	}
 	if (slide.grand) {
@@ -78,9 +78,20 @@ function buildSlide(slide: Slide, i: number): HTMLElement {
 			});
 		}
 	}
+	if (slide.bouton) {
+		const button = body.appendChild(document.createElement('button'));
+		button.type = 'button';
+		button.className = 'bouton';
+		button.textContent = slide.bouton;
+		button.addEventListener('click', () => {
+			if (Number(section.dataset.index) === index) pressButton();
+		});
+	}
 	if (slide.chargement !== undefined) {
 		const loading = body.appendChild(document.createElement('div'));
 		loading.className = 'chargement';
+		// Avec un bouton, la barre n'apparaît qu'à l'appui.
+		loading.hidden = Boolean(slide.bouton);
 		const track = loading.appendChild(document.createElement('div'));
 		track.className = 'chargement-piste';
 		track.appendChild(document.createElement('div')).className = 'chargement-bar';
@@ -143,6 +154,12 @@ function ensureFit(section: HTMLElement): void {
 	fitted.add(section);
 }
 
+/** Contenu de la slide changé (bouton remplacé par la barre…) : réajustée tout de suite. */
+function refitSection(section: HTMLElement): void {
+	fitted.delete(section);
+	ensureFit(section);
+}
+
 /** Taille d'écran ou polices changées : tout est à réajuster, les slides rendues tout de suite. */
 function refit(): void {
 	fitted.clear();
@@ -158,21 +175,56 @@ void document.fonts?.ready.then(refit);
 
 /* ---------- Navigation ---------- */
 
-/** Slide dont le chargement est lancé ; -1 si aucune. Revenir sur une slide relance son chargement. */
-let loadingIndex = -1;
+/*
+ * Bouton et chargement de la slide courante. En arrivant sur une slide, tout repart du début :
+ * bouton affiché s'il y en a un (le chargement attend l'appui), sinon chargement lancé tout de suite.
+ */
 
-/** Lance le chargement de la slide courante si elle en a un et qu'il ne tourne pas déjà. */
-function syncLoading(): void {
-	if (loadingIndex === index) return;
-	stopLoading();
-	loadingIndex = -1;
-	const seconds = SLIDES[index]?.chargement;
-	if (seconds === undefined) return;
-	loadingIndex = index;
-	const from = index;
-	startLoading(slideEls[index], seconds, () => {
-		if (index === from) goTo(from + 1);
+/** Slide dont le bouton et le chargement sont préparés ; -1 si aucune. */
+let preparedIndex = -1;
+/** La slide courante a un bouton pas encore appuyé. */
+let waitingForButton = false;
+
+/** Lance le chargement de la slide `i`, ou passe directement à la suivante si elle n'en a pas. */
+function launch(i: number): void {
+	const seconds = SLIDES[i]?.chargement;
+	if (seconds === undefined) {
+		goTo(i + 1);
+		return;
+	}
+	startLoading(slideEls[i], seconds, () => {
+		if (index === i) goTo(i + 1);
 	});
+}
+
+function syncSlideActions(): void {
+	if (preparedIndex === index) return;
+	stopLoading();
+	preparedIndex = index;
+	const slide = SLIDES[index];
+	const section = slideEls[index];
+	waitingForButton = Boolean(slide?.bouton);
+	if (waitingForButton) {
+		section.querySelector<HTMLElement>('.bouton')!.hidden = false;
+		const loading = section.querySelector<HTMLElement>('.chargement');
+		if (loading) loading.hidden = true;
+		refitSection(section);
+	} else if (slide?.chargement !== undefined) {
+		launch(index);
+	}
+}
+
+/** Appui sur le bouton de la slide courante (doigt, ou « slide suivante » tant qu'il attend). */
+export function pressButton(): void {
+	if (!waitingForButton) return;
+	waitingForButton = false;
+	setBlack(false);
+	const section = slideEls[index];
+	section.querySelector<HTMLElement>('.bouton')!.hidden = true;
+	const loading = section.querySelector<HTMLElement>('.chargement');
+	if (loading) loading.hidden = false;
+	refitSection(section);
+	launch(index);
 }
 
 /**
@@ -197,7 +249,7 @@ function render(): void {
 	const note = SLIDES[index]?.note ?? '';
 	noteEl.textContent = note;
 	noteEl.hidden = !settings.showNotes || !note;
-	syncLoading();
+	syncSlideActions();
 }
 
 export const currentIndex = (): number => index;
@@ -215,6 +267,8 @@ export function goTo(target: number): void {
 /** Déplacement demandé par un geste ou une touche. Sur écran noir, il ne fait que rallumer. */
 export function move(m: Move): void {
 	if (isBlack()) setBlack(false);
+	// Bouton qui attend : « suivante » appuie dessus, pour ne jamais sauter l'analyse par erreur.
+	else if (m === 'next' && waitingForButton) pressButton();
 	else goTo(applyMove(index, m, slideCount));
 }
 

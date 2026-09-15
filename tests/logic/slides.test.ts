@@ -48,14 +48,21 @@ test('slideLabel : titre court pour le menu', () => {
 test('checkSlides : erreurs lisibles', () => {
 	const none = (): boolean => false;
 	assert.deepEqual(checkSlides([], none), ['aucune slide']);
-	assert.deepEqual(checkSlides([{ note: 'seulement une note' }], none), ['slide 1 : rien à afficher (titre, grand, texte, image ou chargement)']);
-	assert.deepEqual(checkSlides([{ titre: 'ok' }, { titre: '   ' }], none), ['slide 2 : rien à afficher (titre, grand, texte, image ou chargement)']);
+	assert.deepEqual(checkSlides([{ note: 'seulement une note' }], none), ['slide 1 : rien à afficher (titre, grand, texte, image, chargement ou bouton)']);
+	assert.deepEqual(checkSlides([{ titre: 'ok' }, { titre: '   ' }], none), ['slide 2 : rien à afficher (titre, grand, texte, image, chargement ou bouton)']);
 	const typo = checkSlides([{ titre: 'x', txte: 'faute' } as never], none);
 	assert.equal(typo.length, 1);
 	assert.match(typo[0], /champ inconnu « txte »/);
 	assert.deepEqual(checkSlides([{ image: 'carte.png' }], none), ['slide 1 : l\'image doit être dans images/ (reçu « carte.png »)']);
 	assert.deepEqual(checkSlides([{ image: 'images/carte.png' }], none), ['slide 1 : image introuvable public/images/carte.png']);
 	assert.deepEqual(checkSlides([{ image: 'images/carte.png' }], () => true), []);
+});
+
+test('checkSlides : bouton', () => {
+	const none = (): boolean => false;
+	assert.deepEqual(checkSlides([{ bouton: 'Lancer l\'analyse', chargement: 5 }, { titre: 'suite' }], none), [], 'un bouton seul suffit');
+	assert.deepEqual(checkSlides([{ titre: 'x', bouton: '  ' }, { titre: 'suite' }], none), ['slide 1 : bouton sans texte']);
+	assert.deepEqual(checkSlides([{ titre: 'x' }, { titre: 'fin', bouton: 'Suivant' }], none), ['slide 2 : bouton sur la dernière slide, il n\'y a pas de slide suivante']);
 });
 
 test('checkSlides : chargement', () => {

@@ -9,6 +9,8 @@
  *   image  fichier placé dans public/images/, ex. 'images/carte.png'
  *   chargement  fausse barre de chargement de cette durée en secondes (1 à 120) ;
  *          à 100 %, passe seule à la slide suivante
+ *   bouton texte d'un bouton, ex. 'Lancer l\'analyse' : le chargement ne démarre qu'à l'appui
+ *          (sans chargement, le bouton passe à la slide suivante)
  *   note   note pour l'artiste, visible seulement si « Afficher les notes » est activé
  *
  * Le texte s'adapte tout seul à la taille de l'écran. Une erreur (slide vide, image absente,
@@ -28,9 +30,11 @@ export const SLIDES: readonly Slide[] = [
 		note: 'Tap à droite ou glisser vers la gauche pour avancer.',
 	},
 	{
-		titre: 'Titre et texte',
-		texte: 'Un premier paragraphe.\n\nUn second paragraphe, avec un **mot mis en valeur**.',
-		note: 'Tap sur le tiers gauche de l\'écran pour revenir en arrière.',
+		titre: 'Calibration',
+		texte: 'Posez le téléphone\nsur le jeu.',
+		bouton: 'Lancer l\'analyse',
+		chargement: 5,
+		note: 'Appuyer sur le bouton, puis poser le téléphone sur le jeu (un tap à droite lance aussi l\'analyse).',
 	},
 	{
 		grand: '52',

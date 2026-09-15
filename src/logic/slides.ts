@@ -20,6 +20,12 @@ export interface Slide {
 	image?: string;
 	/** Fausse barre de chargement de cette durée, en secondes ; à 100 %, passe seule à la slide suivante. */
 	chargement?: number;
+	/**
+	 * Texte d'un bouton, ex. « Lancer l'analyse ». Avec un chargement, celui-ci ne démarre qu'à l'appui ;
+	 * sans chargement, le bouton passe à la slide suivante. Tant qu'il n'est pas appuyé, « slide suivante »
+	 * (tap à droite, glissement, télécommande) appuie dessus au lieu de sauter la slide.
+	 */
+	bouton?: string;
 	/** Note pour l'artiste : visible seulement si « Afficher les notes » est activé. */
 	note?: string;
 }
@@ -66,7 +72,7 @@ export function slideLabel(slide: Slide): string {
 	return flat.length > LABEL_MAX ? `${flat.slice(0, LABEL_MAX - 1)}…` : flat;
 }
 
-const FIELDS: readonly (keyof Slide)[] = ['titre', 'grand', 'texte', 'image', 'chargement', 'note'];
+const FIELDS: readonly (keyof Slide)[] = ['titre', 'grand', 'texte', 'image', 'chargement', 'bouton', 'note'];
 
 /**
  * Erreurs du contenu, une par ligne lisible (liste vide si tout va bien).
@@ -81,7 +87,11 @@ export function checkSlides(slides: readonly Slide[], imageExists: (path: string
 			if (!FIELDS.includes(key as keyof Slide)) errors.push(`${where} : champ inconnu « ${key} » (champs possibles : ${FIELDS.join(', ')})`);
 		}
 		const visible = [slide.titre, slide.grand, slide.texte, slide.image].some((value) => value?.trim());
-		if (!visible && slide.chargement === undefined) errors.push(`${where} : rien à afficher (titre, grand, texte, image ou chargement)`);
+		if (!visible && slide.chargement === undefined && !slide.bouton?.trim()) errors.push(`${where} : rien à afficher (titre, grand, texte, image, chargement ou bouton)`);
+		if (slide.bouton !== undefined) {
+			if (typeof slide.bouton !== 'string' || !slide.bouton.trim()) errors.push(`${where} : bouton sans texte`);
+			if (i === slides.length - 1 && slide.chargement === undefined) errors.push(`${where} : bouton sur la dernière slide, il n'y a pas de slide suivante`);
+		}
 		if (slide.chargement !== undefined) {
 			const seconds = slide.chargement;
 			if (typeof seconds !== 'number' || !(seconds >= LOADING.minSeconds && seconds <= LOADING.maxSeconds)) {
