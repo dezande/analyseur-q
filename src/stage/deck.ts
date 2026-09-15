@@ -46,6 +46,11 @@ function buildSlide(slide: Slide, i: number): HTMLElement {
 	const body = section.appendChild(document.createElement('div'));
 	body.className = 'slide-body';
 
+	if (slide.etiquette) {
+		const label = body.appendChild(document.createElement('p'));
+		label.className = 'etiquette';
+		appendLine(label, slide.etiquette);
+	}
 	if (slide.titre) {
 		const h = body.appendChild(document.createElement('h1'));
 		h.className = 'titre';

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-130 -150 260 300" width="260" height="300">
+	<!-- Grand carreau rouge, avec un reflet. -->
+	<defs>
+		<linearGradient id="rouge" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0" stop-color="#ef4a5a"/>
+			<stop offset=".55" stop-color="#d62839"/>
+			<stop offset="1" stop-color="#9e1426"/>
+		</linearGradient>
+		<radialGradient id="halo" cx="50%" cy="50%" r="50%">
+			<stop offset="0" stop-color="#d62839" stop-opacity=".35"/>
+			<stop offset="1" stop-color="#d62839" stop-opacity="0"/>
+		</radialGradient>
+	</defs>
+	<ellipse cx="0" cy="0" rx="128" ry="148" fill="url(#halo)"/>
+	<path d="M0,-125 C22,-80 55,-36 92,0 C55,36 22,80 0,125 C-22,80 -55,36 -92,0 C-55,-36 -22,-80 0,-125 Z" fill="url(#rouge)"/>
+	<path d="M0,-100 C15,-70 34,-44 58,-20 C34,-38 16,-60 0,-78 Z" fill="#fff" opacity=".28"/>
+</svg>

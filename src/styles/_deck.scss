@@ -75,11 +75,43 @@ $duration: .45s;
 		margin-top: calc(var(--fit) * max(24px, 6vmin));
 	}
 
+	// L'étiquette est placée à part en haut : pas d'écart sous elle.
+	> .etiquette + * {
+		margin-top: 0;
+	}
+
 	// Bouton et barre de chargement : bien détachés du texte au-dessus.
 	> * + .bouton,
 	> * + .chargement {
 		margin-top: calc(var(--fit) * max(40px, 10vmin));
 	}
+}
+
+// Étiquette (champ `etiquette`) : petites capitales orange, façon rapport d'analyse.
+// Toujours au même endroit en haut de l'écran et à la même taille, quel que soit le contenu :
+// sortie du centrage, et place réservée au-dessus du contenu (padding de la slide).
+$etiquette-top: max(52px, 10vmin);
+$etiquette-place: max(100px, 19vmin);
+
+.slide:has(> .slide-body > .etiquette) {
+	padding-top: calc(var(--safe-t) + #{$etiquette-place});
+}
+
+.etiquette {
+	position: absolute;
+	top: calc(var(--safe-t) + #{$etiquette-top});
+	left: 50%;
+	transform: translateX(-50%);
+	margin: 0;
+	padding: 6px 14px;
+	border: 1px solid rgba(247, 147, 30, .45);
+	border-radius: 999px;
+	color: $accent;
+	white-space: nowrap;
+	font: 600 clamp(12px, 3.2vmin, 18px) / 1 $sans;
+	letter-spacing: .16em;
+	text-transform: uppercase;
+	font-variant-numeric: tabular-nums;
 }
 
 .titre {
@@ -119,6 +151,12 @@ $duration: .45s;
 
 	p + p {
 		margin-top: .8em;
+	}
+
+	// Ni titre ni grand nombre sur la slide : le texte est le message, il est affiché plus grand.
+	.slide-body:not(:has(> .titre, > .grand)) > & {
+		font-size: calc(var(--fit) * clamp(26px, 9vmin, 76px));
+		line-height: 1.28;
 	}
 }
 

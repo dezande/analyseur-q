@@ -1,6 +1,85 @@
 @use "tokens" as *;
 @use "mixins" as *;
 
+// Cadre d'instrument : coins de viseur, graduations et repères, sur toutes les slides.
+// Placé dans la marge des slides (padding de .slide), il ne recouvre pas leur contenu.
+#frame {
+	--inset: 12px;
+	--coin: clamp(22px, 7vmin, 40px);
+	--trait: rgba(247, 147, 30, .55);
+	position: fixed;
+	z-index: 5;
+	inset: calc(var(--safe-t) + var(--inset)) calc(var(--safe-r) + var(--inset)) calc(var(--safe-b) + var(--inset)) calc(var(--safe-l) + var(--inset));
+	pointer-events: none;
+
+	.coin {
+		position: absolute;
+		width: var(--coin);
+		height: var(--coin);
+		border: 0 solid var(--trait);
+	}
+
+	.haut-gauche { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
+	.haut-droite { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
+	.bas-gauche { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
+	.bas-droite { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
+
+	// Graduations le long des bords : un trait tous les 12 px, un plus long tous les 60 px.
+	.graduations {
+		position: absolute;
+		top: calc(var(--coin) + 16px);
+		bottom: calc(var(--coin) + 16px);
+		width: 10px;
+		opacity: .5;
+		background:
+			repeating-linear-gradient(180deg, var(--trait) 0 1px, transparent 1px 60px) left / 10px 100% no-repeat,
+			repeating-linear-gradient(180deg, var(--trait) 0 1px, transparent 1px 12px) left / 5px 100% no-repeat;
+	}
+
+	.gauche { left: 0; }
+
+	.droite {
+		right: 0;
+		transform: scaleX(-1);
+	}
+
+	.repere {
+		position: absolute;
+		left: 50%;
+		transform: translateX(-50%);
+		color: rgba(247, 147, 30, .7);
+		font: 600 10px/1 $sans;
+		letter-spacing: .22em;
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	.haut { top: 2px; }
+
+	.bas {
+		bottom: 2px;
+		display: flex;
+		align-items: center;
+		gap: 7px;
+
+		// Voyant de mesure qui pulse.
+		i {
+			width: 6px;
+			height: 6px;
+			border-radius: 50%;
+			background: $accent;
+			box-shadow: 0 0 8px $accent;
+			animation: voyant 1.6s ease-in-out infinite;
+		}
+	}
+}
+
+@keyframes voyant {
+	50% {
+		opacity: .25;
+	}
+}
+
 // Aides posées sur la scène : elles laissent passer les touchers.
 #counter,
 #progress,
@@ -13,8 +92,8 @@
 
 #counter {
 	z-index: 10;
-	top: calc(var(--safe-t) + 12px);
-	right: calc(var(--safe-r) + 16px);
+	top: calc(var(--safe-t) + 22px);
+	right: calc(var(--safe-r) + 26px);
 	font: 500 13px/1 $sans;
 	font-variant-numeric: tabular-nums;
 	letter-spacing: .04em;

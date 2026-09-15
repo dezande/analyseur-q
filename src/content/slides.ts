@@ -1,11 +1,12 @@
 /*
  * LE CONTENU DU DIAPORAMA : une entrée par slide, dans l'ordre.
  *
- * Champs (tous facultatifs, au moins un parmi titre, grand, texte, image, chargement) :
+ * Champs (tous facultatifs, au moins un parmi titre, grand, texte, image, chargement, bouton) :
+ *   etiquette  petite étiquette orange, toujours au même endroit en haut, ex. 'Résultat'
  *   titre  en haut de la slide ; **titre** entre doubles astérisques : en orange
  *   grand  un mot ou un nombre en très grand
  *   texte  texte courant ; retour à la ligne conservé, ligne vide = nouveau paragraphe,
- *          **mots** entre doubles astérisques = mis en valeur
+ *          **mots** entre doubles astérisques = mis en valeur ; plus grand sans titre ni grand
  *   image  fichier placé dans public/images/, ex. 'images/carte.png'
  *   chargement  fausse barre de chargement de cette durée en secondes (1 à 120) ;
  *          à 100 %, passe seule à la slide suivante (sauf avec un message termine)
@@ -48,29 +49,43 @@ export const SLIDES: readonly Slide[] = [
 		note: 'Appuyer sur le bouton pour afficher les résultats.',
 	},
 	{
+		etiquette: 'Résultat',
 		grand: '24',
 		texte: 'cartes face en bas',
 	},
 	{
+		etiquette: 'Résultat',
 		grand: '13',
 		texte: 'cartes rouges',
 	},
 	{
+		etiquette: 'Résultat',
 		image: 'images/royal-flush-coeur.svg',
 		texte: 'On peut faire un **royal flush à cœur**',
 	},
 	{
-		texte: 'Les autres cartes rouges\nsont des **carreaux**.',
+		etiquette: 'Résultat',
+		image: 'images/carreau.svg',
+		texte: 'Les autres cartes rouges sont des **carreaux**.',
 	},
 	{
+		etiquette: 'Résultat',
 		image: 'images/figure-barree.svg',
-		texte: 'Les cartes noires sont toutes\ndes **cartes numérotées** :\naucune figure.',
+		texte: 'Les cartes noires sont toutes des **cartes numérotées** : aucune figure.',
 	},
 	{
-		texte: 'Ce sont toutes\ndes cartes paires...',
+		etiquette: 'Résultat',
+		image: 'images/cartes-paires.svg',
+		texte: 'Ce sont toutes des cartes paires...',
 	},
 	{
+		etiquette: 'Résultat',
 		image: 'images/3-de-pique.svg',
 		texte: 'sauf le **3 de pique**',
+	},
+	{
+		titre: '**Merci**',
+		image: 'images/logo.svg',
+		texte: 'd\'avoir utilisé l\'Analyseur Q',
 	},
 ];

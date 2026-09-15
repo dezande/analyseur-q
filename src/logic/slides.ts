@@ -7,6 +7,8 @@
 import { LOADING } from './loading.ts';
 
 export interface Slide {
+	/** Petite étiquette, toujours au même endroit en haut de l'écran, ex. « Résultat ». */
+	etiquette?: string;
 	/** Titre, en haut de la slide. */
 	titre?: string;
 	/** Mot ou nombre affiché en très grand, au centre. */
@@ -77,7 +79,7 @@ export function slideLabel(slide: Slide): string {
 	return flat.length > LABEL_MAX ? `${flat.slice(0, LABEL_MAX - 1)}…` : flat;
 }
 
-const FIELDS: readonly (keyof Slide)[] = ['titre', 'grand', 'texte', 'image', 'chargement', 'termine', 'bouton', 'note'];
+const FIELDS: readonly (keyof Slide)[] = ['etiquette', 'titre', 'grand', 'texte', 'image', 'chargement', 'termine', 'bouton', 'note'];
 
 /**
  * Erreurs du contenu, une par ligne lisible (liste vide si tout va bien).

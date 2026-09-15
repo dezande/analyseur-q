@@ -505,6 +505,21 @@ test('aucune slide ne sort de l’écran, en portrait comme en paysage', TEST_TI
 	});
 });
 
+test('étiquettes : au même endroit et à la même taille sur toutes les slides', TEST_TIMEOUT, async () => {
+	const labelled = SLIDES.flatMap((slide, i) => (slide.etiquette ? [i] : []));
+	await withApp({}, async (page) => {
+		const boxes = new Set<string>();
+		for (const i of labelled) {
+			await page.evaluate(`document.querySelector('#slide-list button[data-index="${i}"]').click()`);
+			await expectSlide(page, i);
+			await sleep(600); // fin de la transition
+			boxes.add(await page.evaluate<string>(`(() => { const r = document.querySelector('.slide.current .etiquette').getBoundingClientRect(); return [Math.round(r.top), Math.round(r.height)].join(','); })()`));
+			assert.deepEqual(await page.evaluate(OVERFLOWING), [], `slide ${i + 1} : contenu dans l'écran, sous l'étiquette`);
+		}
+		assert.equal(boxes.size, labelled.length > 0 ? 1 : 0, `positions : ${[...boxes].join(' | ')}`);
+	});
+});
+
 test('seules la slide courante et ses voisines sont rendues', TEST_TIMEOUT, async () => {
 	const rendered = `[...document.querySelectorAll('.slide:not(.far)')].map((s) => Number(s.dataset.index))`;
 	await withApp({}, async (page) => {
