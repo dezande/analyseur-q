@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { SLIDES } from '../../src/content/slides.ts';
-import { checkSlides, paragraphs, parseInline } from '../../src/logic/slides.ts';
+import { checkSlides, paragraphs, parseInline, slideLabel } from '../../src/logic/slides.ts';
 
 test('parseInline : **mises en valeur**', () => {
 	assert.deepEqual(parseInline('un **mot** ici'), [
@@ -33,6 +33,16 @@ test('paragraphs : ligne vide = paragraphe, retour à la ligne conservé', () =>
 	assert.deepEqual(paragraphs('a\r\n\r\nb'), [['a'], ['b']]);
 	assert.deepEqual(paragraphs('a\n  \nb'), [['a'], ['b']]);
 	assert.deepEqual(paragraphs('   '), []);
+});
+
+test('slideLabel : titre court pour le menu', () => {
+	assert.equal(slideLabel({ titre: 'Rain **Man**', texte: 'x' }), 'Rain Man');
+	assert.equal(slideLabel({ grand: '52', texte: 'x' }), '52');
+	assert.equal(slideLabel({ texte: 'une\n\n  ligne' }), 'une ligne');
+	assert.equal(slideLabel({ chargement: 5 }), 'Chargement');
+	const long = slideLabel({ texte: 'mot '.repeat(40) });
+	assert.equal(long.length, 60);
+	assert.ok(long.endsWith('…'));
 });
 
 test('checkSlides : erreurs lisibles', () => {

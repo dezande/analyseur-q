@@ -36,7 +36,8 @@ function appendLine(parent: HTMLElement, line: string): void {
 
 function buildSlide(slide: Slide, i: number): HTMLElement {
 	const section = document.createElement('section');
-	section.className = 'slide';
+	// Hors de la fenêtre d'affichage tant que render() ne l'y a pas mise.
+	section.className = 'slide far';
 	section.dataset.index = String(i);
 	section.setAttribute('aria-roledescription', 'slide');
 	section.setAttribute('aria-label', counterLabel(i, slideCount));
@@ -53,7 +54,11 @@ function buildSlide(slide: Slide, i: number): HTMLElement {
 		img.className = 'image';
 		img.src = slide.image;
 		img.alt = '';
-		img.addEventListener('load', () => fit(section));
+		img.decoding = 'async';
+		img.addEventListener('load', () => {
+			fitted.delete(section);
+			if (!section.classList.contains('far')) ensureFit(section);
+		});
 	}
 	if (slide.grand) {
 		const big = body.appendChild(document.createElement('p'));
@@ -87,6 +92,18 @@ function buildSlide(slide: Slide, i: number): HTMLElement {
 const slideEls = SLIDES.map(buildSlide);
 deckEl.replaceChildren(...slideEls);
 
+/*
+ * Fenêtre d'affichage : seules la slide courante et ses deux voisines sont rendues (les voisines,
+ * invisibles, servent aux transitions). Les autres sont en display: none. Avec une routine de
+ * dizaines de slides, le démarrage, les rotations d'écran et chaque changement de slide ne
+ * coûtent ainsi que le prix de trois slides.
+ */
+
+/** Écart maximal avec la slide courante pour qu'une slide soit rendue. */
+const WINDOW = 1;
+/** Index des slides actuellement rendues. */
+let rendered: number[] = [];
+
 /* ---------- Ajustement du texte ---------- */
 
 /** Plus petite échelle du texte : en dessous, mieux vaut raccourcir la slide. */
@@ -115,16 +132,27 @@ function fit(section: HTMLElement): void {
 	section.style.setProperty('--fit', String(lo));
 }
 
-export function fitAll(): void {
-	for (const section of slideEls) fit(section);
+/** Slides ajustées à la taille d'écran actuelle. Une slide est ajustée la première fois qu'elle est rendue. */
+const fitted = new Set<HTMLElement>();
+
+function ensureFit(section: HTMLElement): void {
+	if (fitted.has(section)) return;
+	fit(section);
+	fitted.add(section);
+}
+
+/** Taille d'écran ou polices changées : tout est à réajuster, les slides rendues tout de suite. */
+function refit(): void {
+	fitted.clear();
+	for (const i of rendered) ensureFit(slideEls[i]);
 }
 
 let resizeFrame = 0;
 window.addEventListener('resize', () => {
 	cancelAnimationFrame(resizeFrame);
-	resizeFrame = requestAnimationFrame(fitAll);
+	resizeFrame = requestAnimationFrame(refit);
 });
-void document.fonts?.ready.then(fitAll);
+void document.fonts?.ready.then(refit);
 
 /* ---------- Navigation ---------- */
 
@@ -145,14 +173,23 @@ function syncLoading(): void {
 	});
 }
 
-/** Place chaque slide avant, sur ou après la slide courante (les transitions CSS font le reste). */
+/**
+ * Place les slides de la fenêtre avant, sur ou après la slide courante (les transitions CSS font
+ * le reste) et retire celles qui en sortent. Seules les slides qui entrent ou sortent sont touchées.
+ */
 function render(): void {
-	slideEls.forEach((section, i) => {
+	const next: number[] = [];
+	for (let i = Math.max(0, index - WINDOW); i <= Math.min(slideCount - 1, index + WINDOW); i++) next.push(i);
+	for (const i of new Set([...rendered, ...next])) {
+		const section = slideEls[i];
+		section.classList.toggle('far', !next.includes(i));
 		section.classList.toggle('before', i < index);
 		section.classList.toggle('current', i === index);
 		section.classList.toggle('after', i > index);
 		section.setAttribute('aria-hidden', String(i !== index));
-	});
+	}
+	rendered = next;
+	for (const i of next) ensureFit(slideEls[i]);
 	counterEl.textContent = counterLabel(index, slideCount);
 	progressEl.style.transform = `scaleX(${slideCount > 1 ? index / (slideCount - 1) : 1})`;
 	const note = SLIDES[index]?.note ?? '';
@@ -197,16 +234,7 @@ export function applyDisplaySettings(): void {
 	render();
 }
 
-/** Titre court d'une slide, pour la liste du menu. */
-export function slideLabel(i: number): string {
-	const slide = SLIDES[i];
-	const raw = slide?.titre || slide?.grand || slide?.texte || slide?.image || '';
-	const flat = raw.replaceAll('**', '').replace(/\s+/g, ' ').trim();
-	return flat.length > 60 ? `${flat.slice(0, 59)}…` : flat;
-}
-
 // Sans transition au démarrage : la slide reprise apparaît directement.
 deckEl.classList.add('no-anim');
 applyDisplaySettings();
-fitAll();
 requestAnimationFrame(() => requestAnimationFrame(() => deckEl.classList.remove('no-anim')));

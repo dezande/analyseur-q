@@ -35,6 +35,11 @@ $duration: .45s;
 	visibility: hidden;
 	transition: opacity $duration ease, transform $duration ease, visibility 0s linear $duration;
 
+	// Hors de la fenêtre d'affichage (stage/deck.ts) : pas rendue du tout.
+	&.far {
+		display: none;
+	}
+
 	&.current {
 		opacity: 1;
 		visibility: visible;

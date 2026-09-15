@@ -116,10 +116,8 @@ document.addEventListener('keydown', (event) => {
 	else move(action);
 });
 
-/** Menu ouvert, app en arrière-plan : aucun geste commencé ne doit se terminer plus tard. */
-export function resetGestures(): void {
+// App en arrière-plan : aucun geste commencé ne doit se terminer plus tard.
+document.addEventListener('visibilitychange', () => {
 	stopHold();
 	gestures.reset();
-}
-
-document.addEventListener('visibilitychange', resetGestures);
+});

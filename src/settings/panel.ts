@@ -3,9 +3,11 @@
  * aller à une slide, réglages d'affichage, état de l'écran et version.
  */
 
-import { TRANSITIONS, type Settings } from '../logic/settings.ts';
+import { SLIDES } from '../content/slides.ts';
 import { counterLabel } from '../logic/deck.ts';
-import { applyDisplaySettings, currentIndex, goTo, slideCount, slideLabel } from '../stage/deck.ts';
+import { TRANSITIONS, type Settings } from '../logic/settings.ts';
+import { slideLabel } from '../logic/slides.ts';
+import { applyDisplaySettings, currentIndex, goTo, slideCount } from '../stage/deck.ts';
 import { BUILD } from '../system/build.ts';
 import { $ } from '../system/dom.ts';
 import { settings, storeSettings } from './store.ts';
@@ -32,7 +34,7 @@ for (let i = 0; i < slideCount; i++) {
 	const number = button.appendChild(document.createElement('span'));
 	number.className = 'num';
 	number.textContent = String(i + 1);
-	button.append(slideLabel(i));
+	button.append(slideLabel(SLIDES[i]));
 	button.addEventListener('click', () => {
 		goTo(i);
 		closeMenu();
@@ -87,11 +89,14 @@ export function closeMenu(): void {
 
 /* ---------- Réglages ---------- */
 
-function update(change: Partial<Settings>): void {
-	storeSettings({ ...settings, ...change });
+/** Enregistre les réglages (null : réglages par défaut), les applique et met le menu à jour. */
+function save(next: Settings | null): void {
+	storeSettings(next);
 	applyDisplaySettings();
 	refresh();
 }
+
+const update = (change: Partial<Settings>): void => save({ ...settings, ...change });
 
 for (const [key, selector] of Object.entries(TOGGLES) as [Toggle, string][]) {
 	$<HTMLInputElement>(selector).addEventListener('change', (event) => {
@@ -114,8 +119,4 @@ $('#restart-btn').addEventListener('click', () => {
 	closeMenu();
 });
 $('#close-btn').addEventListener('click', closeMenu);
-$('#defaults-btn').addEventListener('click', () => {
-	storeSettings(null);
-	applyDisplaySettings();
-	refresh();
-});
+$('#defaults-btn').addEventListener('click', () => save(null));

@@ -322,8 +322,8 @@ test('chargement : en pause menu ouvert ; relancé depuis 0 en revenant sur la s
 
 /* ================= Mise en page ================= */
 
-/** Slides dont le contenu sort de l'écran, avec leur échelle de texte. */
-const OVERFLOWING = `[...document.querySelectorAll('.slide')].filter((slide) => {
+/** Slides rendues dont le contenu sort de l'écran, avec leur échelle de texte. */
+const OVERFLOWING = `[...document.querySelectorAll('.slide:not(.far)')].filter((slide) => {
 	const body = slide.firstElementChild;
 	const style = getComputedStyle(slide);
 	const height = slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
@@ -332,10 +332,33 @@ const OVERFLOWING = `[...document.querySelectorAll('.slide')].filter((slide) => 
 
 test('aucune slide ne sort de l’écran, en portrait comme en paysage', TEST_TIMEOUT, async () => {
 	await withApp({}, async (page) => {
-		assert.deepEqual(await page.evaluate(OVERFLOWING), [], 'portrait');
+		// Chaque slide est ajustée quand elle est rendue : on les parcourt toutes.
+		const checkAll = async (orientation: string): Promise<void> => {
+			await pressKey(page, 'Home');
+			for (let i = 0; i < COUNT; i++) {
+				await page.evaluate(`document.querySelector('#slide-list button[data-index="${i}"]').click()`);
+				await expectSlide(page, i);
+				assert.deepEqual(await page.evaluate(OVERFLOWING), [], `${orientation}, slide ${i + 1}`);
+			}
+		};
+		await checkAll('portrait');
 		await page.send('Emulation.setDeviceMetricsOverride', { width: SCREEN.height, height: SCREEN.width, deviceScaleFactor: 3, mobile: true });
 		await sleep(300);
-		assert.deepEqual(await page.evaluate(OVERFLOWING), [], 'paysage');
+		await checkAll('paysage');
+	});
+});
+
+test('seules la slide courante et ses voisines sont rendues', TEST_TIMEOUT, async () => {
+	const rendered = `[...document.querySelectorAll('.slide:not(.far)')].map((s) => Number(s.dataset.index))`;
+	await withApp({}, async (page) => {
+		assert.deepEqual(await page.evaluate(rendered), [0, 1]);
+		await page.tap(RIGHT);
+		await expectSlide(page, 1);
+		assert.deepEqual(await page.evaluate(rendered), [0, 1, 2]);
+		await pressKey(page, 'End');
+		await expectSlide(page, COUNT - 1);
+		assert.deepEqual(await page.evaluate(rendered), [COUNT - 2, COUNT - 1]);
+		assert.equal(await page.evaluate(`document.querySelectorAll('.slide.current').length`), 1);
 	});
 });
 

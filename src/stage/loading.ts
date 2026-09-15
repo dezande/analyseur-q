@@ -45,7 +45,9 @@ export function startLoading(section: HTMLElement, seconds: number, onDone: () =
 	const draw = (): void => {
 		const progress = loadingProgress(elapsed / durationMs);
 		bar.style.transform = `scaleX(${progress})`;
-		percent.textContent = percentLabel(progress);
+		// Le texte ne change qu'une centaine de fois : inutile de le réécrire à chaque image.
+		const label = percentLabel(progress);
+		if (percent.textContent !== label) percent.textContent = label;
 	};
 
 	const tick = (now: number): void => {

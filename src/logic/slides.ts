@@ -56,6 +56,16 @@ export function paragraphs(texte: string): string[][] {
 		.filter((lines) => lines.some(Boolean));
 }
 
+/** Longueur maximale du titre court d'une slide dans le menu. */
+const LABEL_MAX = 60;
+
+/** Titre court d'une slide pour la liste du menu : titre, sinon grand, texte, image ou « Chargement ». */
+export function slideLabel(slide: Slide): string {
+	const raw = slide.titre || slide.grand || slide.texte || slide.image || (slide.chargement !== undefined ? 'Chargement' : '');
+	const flat = raw.replaceAll('**', '').replace(/\s+/g, ' ').trim();
+	return flat.length > LABEL_MAX ? `${flat.slice(0, LABEL_MAX - 1)}…` : flat;
+}
+
 const FIELDS: readonly (keyof Slide)[] = ['titre', 'grand', 'texte', 'image', 'chargement', 'note'];
 
 /**
