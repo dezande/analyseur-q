@@ -25,7 +25,7 @@ Tout le texte est dans **[`src/content/slides.ts`](src/content/slides.ts)** : un
 | `titre` | En haut de la slide ; seul sur la slide, il est affiché plus grand |
 | `grand` | Un mot ou un nombre en très grand |
 | `texte` | Texte courant. Retour à la ligne conservé, ligne vide = nouveau paragraphe, `**mots**` = mis en valeur |
-| `image` | Fichier placé dans `public/images/` |
+| `image` | Fichier placé dans `public/images/` (le logo : `images/logo.svg`). Plus petite quand la slide contient aussi du texte |
 | `chargement` | Fausse barre de chargement de cette durée, en secondes (1 à 120). À 100 %, passe seule à la slide suivante |
 | `note` | Note pour l'artiste, visible seulement si « Notes pour l'artiste » est activé dans le menu |
 

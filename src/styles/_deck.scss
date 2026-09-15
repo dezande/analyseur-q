@@ -121,6 +121,11 @@ strong {
 	max-height: calc(var(--fit) * 60vh);
 	margin-inline: auto;
 	object-fit: contain;
+
+	// Avec du texte sur la slide, l'image lui laisse la place.
+	.slide-body:has(> :not(.image)) & {
+		max-height: calc(var(--fit) * 36vh);
+	}
 }
 
 // Fausse barre de chargement (champ `chargement`).

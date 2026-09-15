@@ -23,6 +23,7 @@ import type { Slide } from '../logic/slides.ts';
 export const SLIDES: readonly Slide[] = [
 	{
 		titre: 'Analyseur d\'ondes quantiques des cartes à jouer',
+		image: 'images/logo.svg',
 		texte: 'Modèle AQ-52',
 		note: 'Tap à droite ou glisser vers la gauche pour avancer.',
 	},
