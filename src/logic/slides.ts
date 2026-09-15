@@ -18,8 +18,13 @@ export interface Slide {
 	texte?: string;
 	/** Image du dossier public/images/, ex. 'images/carte.png'. */
 	image?: string;
-	/** Fausse barre de chargement de cette durée, en secondes ; à 100 %, passe seule à la slide suivante. */
+	/**
+	 * Fausse barre de chargement de cette durée, en secondes. À 100 %, passe seule à la slide suivante,
+	 * sauf si la slide a un message `termine`.
+	 */
 	chargement?: number;
+	/** Message affiché sous la barre à 100 %, ex. « Analyse quantique terminée » ; la slide reste alors affichée. */
+	termine?: string;
 	/**
 	 * Texte d'un bouton, ex. « Lancer l'analyse ». Avec un chargement, celui-ci ne démarre qu'à l'appui ;
 	 * sans chargement, le bouton passe à la slide suivante. Tant qu'il n'est pas appuyé, « slide suivante »
@@ -72,7 +77,7 @@ export function slideLabel(slide: Slide): string {
 	return flat.length > LABEL_MAX ? `${flat.slice(0, LABEL_MAX - 1)}…` : flat;
 }
 
-const FIELDS: readonly (keyof Slide)[] = ['titre', 'grand', 'texte', 'image', 'chargement', 'bouton', 'note'];
+const FIELDS: readonly (keyof Slide)[] = ['titre', 'grand', 'texte', 'image', 'chargement', 'termine', 'bouton', 'note'];
 
 /**
  * Erreurs du contenu, une par ligne lisible (liste vide si tout va bien).
@@ -88,6 +93,10 @@ export function checkSlides(slides: readonly Slide[], imageExists: (path: string
 		}
 		const visible = [slide.titre, slide.grand, slide.texte, slide.image].some((value) => value?.trim());
 		if (!visible && slide.chargement === undefined && !slide.bouton?.trim()) errors.push(`${where} : rien à afficher (titre, grand, texte, image, chargement ou bouton)`);
+		if (slide.termine !== undefined) {
+			if (typeof slide.termine !== 'string' || !slide.termine.trim()) errors.push(`${where} : message termine vide`);
+			if (slide.chargement === undefined) errors.push(`${where} : message termine sans chargement`);
+		}
 		if (slide.bouton !== undefined) {
 			if (typeof slide.bouton !== 'string' || !slide.bouton.trim()) errors.push(`${where} : bouton sans texte`);
 			if (i === slides.length - 1 && slide.chargement === undefined) errors.push(`${where} : bouton sur la dernière slide, il n'y a pas de slide suivante`);
@@ -97,7 +106,7 @@ export function checkSlides(slides: readonly Slide[], imageExists: (path: string
 			if (typeof seconds !== 'number' || !(seconds >= LOADING.minSeconds && seconds <= LOADING.maxSeconds)) {
 				errors.push(`${where} : chargement en secondes, entre ${LOADING.minSeconds} et ${LOADING.maxSeconds} (reçu « ${String(seconds)} »)`);
 			}
-			if (i === slides.length - 1) errors.push(`${where} : chargement sur la dernière slide, il n'y a pas de slide suivante`);
+			if (i === slides.length - 1 && slide.termine === undefined) errors.push(`${where} : chargement sur la dernière slide, il n'y a pas de slide suivante (ajouter un message termine)`);
 		}
 		if (slide.image !== undefined) {
 			if (!slide.image.startsWith('images/')) errors.push(`${where} : l'image doit être dans images/ (reçu « ${slide.image} »)`);

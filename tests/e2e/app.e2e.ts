@@ -324,25 +324,38 @@ test('réglages abîmés : l’app démarre avec les réglages par défaut', TES
 
 /* ================= Fausse barre de chargement ================= */
 
-/** Première slide avec un chargement (content/slides.ts), et sa durée. */
+/** Première slide qui lance un chargement dès l'arrivée (sans bouton). */
 const LOADING_INDEX = SLIDES.findIndex((slide) => slide.chargement !== undefined && !slide.bouton);
 const LOADING_MS = (SLIDES[LOADING_INDEX]?.chargement ?? 0) * 1000;
 const LOADING_TEST = { timeout: 60_000 + LOADING_MS * 3, skip: LOADING_INDEX < 0 && 'aucune slide avec chargement' };
+/** Slide de LOADING_INDEX : message à 100 % (la slide reste) ou passage automatique à la suivante. */
+const LOADING_MESSAGE = SLIDES[LOADING_INDEX]?.termine;
 
 const percent = (page: Page): Promise<number> =>
 	page.evaluate(`parseInt(document.querySelector('.slide.current .chargement-pourcent')?.textContent ?? '-1')`);
+const doneMessage = `(() => { const m = document.querySelector('.slide.current .chargement-termine'); return m && !m.hidden ? m.textContent : null; })()`;
 
-test('chargement : la barre avance, puis passe seule à la slide suivante', LOADING_TEST, async () => {
+test('chargement : la barre avance, puis à 100 % le message s’affiche (ou la slide suivante)', LOADING_TEST, async () => {
 	await withApp({ [POSITION_KEY]: String(LOADING_INDEX) }, async (page) => {
 		assert.equal(await current(page), LOADING_INDEX);
 		await sleep(LOADING_MS / 2);
 		const middle = await percent(page);
 		assert.ok(middle > 0 && middle < 100, `en cours à mi-parcours (reçu ${middle} %)`);
-		await page.waitFor(`document.querySelector('.slide.current')?.dataset.index === '${LOADING_INDEX + 1}'`, 'slide suivante après le chargement', LOADING_MS + 2000);
+		assert.equal(await page.evaluate(doneMessage), null, 'pas de message avant 100 %');
+		if (LOADING_MESSAGE) {
+			await page.waitFor(`${doneMessage} === ${JSON.stringify(LOADING_MESSAGE.replaceAll('**', ''))}`, 'message à 100 %', LOADING_MS + 2000, doneMessage);
+			assert.equal(await percent(page), 100);
+			await sleep(1500);
+			assert.equal(await current(page), LOADING_INDEX, 'la slide reste affichée avec son message');
+			await page.tap(RIGHT);
+			await expectSlide(page, LOADING_INDEX + 1);
+		} else {
+			await page.waitFor(`document.querySelector('.slide.current')?.dataset.index === '${LOADING_INDEX + 1}'`, 'slide suivante après le chargement', LOADING_MS + 2000);
+		}
 	});
 });
 
-test('chargement : en pause menu ouvert ; relancé depuis 0 en revenant sur la slide', LOADING_TEST, async () => {
+test('chargement : en pause menu ouvert ; relancé depuis 0, sans message, en revenant sur la slide', LOADING_TEST, async () => {
 	await withApp({ [POSITION_KEY]: String(LOADING_INDEX) }, async (page) => {
 		await sleep(LOADING_MS / 3);
 		await pressKey(page, 'm');
@@ -350,80 +363,51 @@ test('chargement : en pause menu ouvert ; relancé depuis 0 en revenant sur la s
 		await sleep(LOADING_MS);
 		assert.equal(await current(page), LOADING_INDEX, 'pas de changement de slide menu ouvert');
 		assert.equal(await percent(page), paused, 'barre arrêtée menu ouvert');
+		assert.equal(await page.evaluate(doneMessage), null, 'pas de message menu ouvert');
 		await pressKey(page, 'Escape');
 		await sleep(300);
 		assert.ok(await percent(page) >= paused);
 
 		// Quitter la slide arrête le chargement ; y revenir le relance depuis le début.
-		await pressKey(page, 'ArrowLeft');
-		await expectSlide(page, LOADING_INDEX - 1);
+		await page.evaluate(`document.querySelector('#slide-list button[data-index="${LOADING_INDEX + 1}"]').click()`);
+		await expectSlide(page, LOADING_INDEX + 1);
 		await sleep(LOADING_MS);
-		assert.equal(await current(page), LOADING_INDEX - 1, 'chargement arrêté en quittant la slide');
-		await pressKey(page, 'ArrowRight');
+		assert.equal(await current(page), LOADING_INDEX + 1, 'chargement arrêté en quittant la slide');
+		await pressKey(page, 'ArrowLeft');
 		await expectSlide(page, LOADING_INDEX);
 		assert.ok(await percent(page) < 20, 'relancé depuis le début');
+		assert.equal(await page.evaluate(doneMessage), null, 'message caché au redémarrage');
 	});
 });
 
 /* ================= Bouton ================= */
 
-/** Première slide avec un bouton et un chargement (content/slides.ts). */
-const BUTTON_INDEX = SLIDES.findIndex((slide) => slide.bouton && slide.chargement !== undefined);
-const BUTTON_MS = (SLIDES[BUTTON_INDEX]?.chargement ?? 0) * 1000;
-const BUTTON_TEST = { timeout: 60_000 + BUTTON_MS * 2, skip: BUTTON_INDEX < 0 && 'aucune slide avec bouton et chargement' };
+/** Première slide avec un bouton seul (sans chargement) : l'appui passe à la slide suivante. */
+const BUTTON_INDEX = SLIDES.findIndex((slide) => slide.bouton && slide.chargement === undefined);
+const BUTTON_TEST = { ...TEST_TIMEOUT, skip: BUTTON_INDEX < 0 && 'aucune slide avec bouton' };
 
-const BUTTON_STATE = `(() => { const s = document.querySelector('.slide.current'); return { index: Number(s.dataset.index), button: !s.querySelector('.bouton').hidden, bar: !s.querySelector('.chargement').hidden }; })()`;
 /** Centre et bord droit du bouton de la slide courante, en pixels. */
 const buttonRect = (page: Page): Promise<{ x: number; y: number; right: number }> =>
 	page.evaluate(`(() => { const r = document.querySelector('.slide.current .bouton').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, right: r.right }; })()`);
 
-async function expectWaiting(page: Page): Promise<void> {
-	assert.deepEqual(await page.evaluate(BUTTON_STATE), { index: BUTTON_INDEX, button: true, bar: false }, 'bouton affiché, barre cachée, slide inchangée');
-}
-
-async function expectLaunched(page: Page): Promise<void> {
-	await page.waitFor(`${BUTTON_STATE}.bar && !${BUTTON_STATE}.button`, 'analyse lancée', 2000, BUTTON_STATE);
-	assert.equal(await current(page), BUTTON_INDEX, 'l\'appui ne saute pas la slide');
-}
-
-/** Quitte la slide du bouton et y revient : tout repart du début. */
-async function reenterButtonSlide(page: Page): Promise<void> {
-	await pressKey(page, 'ArrowLeft');
-	await expectSlide(page, BUTTON_INDEX - 1);
-	await pressKey(page, 'ArrowRight');
-	await expectSlide(page, BUTTON_INDEX);
-}
-
-test('bouton : l’analyse attend l’appui, puis passe seule à la slide suivante', BUTTON_TEST, async () => {
+test('bouton : la slide attend l’appui, qui passe à la slide suivante (une seule)', BUTTON_TEST, async () => {
 	await withApp({ [POSITION_KEY]: String(BUTTON_INDEX) }, async (page) => {
-		await sleep(BUTTON_MS + 500);
-		await expectWaiting(page);
+		await sleep(1500);
+		assert.equal(await current(page), BUTTON_INDEX, 'la slide attend');
 		const { x, y } = await buttonRect(page);
 		await page.tap({ x, y });
-		await expectLaunched(page);
-		await page.waitFor(`document.querySelector('.slide.current')?.dataset.index === '${BUTTON_INDEX + 1}'`, 'slide suivante après l\'analyse', BUTTON_MS + 2000);
+		await expectSlide(page, BUTTON_INDEX + 1);
+		await sleep(400);
+		assert.equal(await current(page), BUTTON_INDEX + 1, 'un seul changement de slide pour un appui');
 	});
 });
 
-test('bouton : tap à côté du bouton (doigt imprécis), tap à droite, glissement ou télécommande lancent l’analyse sans sauter la slide', BUTTON_TEST, async () => {
+test('bouton : tap juste à côté du bouton (doigt imprécis) compte comme un appui', BUTTON_TEST, async () => {
 	await withApp({ [POSITION_KEY]: String(BUTTON_INDEX) }, async (page) => {
 		const rect = await buttonRect(page);
-		const actions: [string, () => Promise<void>][] = [
-			['tap juste à côté du bouton', () => page.tap({ x: rect.right + 12, y: rect.y })],
-			['tap à droite de l’écran', () => page.tap({ x: SCREEN.width - 20, y: SCREEN.height - 140 })],
-			['glissement vers la gauche', () => swipe(page, { x: 330, y: 700 }, { x: 150, y: 710 })],
-			['télécommande', () => pressKey(page, 'PageDown')],
-		];
-		for (const [label, action] of actions) {
-			await expectWaiting(page);
-			await action();
-			await expectLaunched(page).catch((error: Error) => { throw new Error(`${label} : ${error.message}`); });
-			await reenterButtonSlide(page);
-		}
-		// Revenir sur la slide remet le bouton ; reculer reste possible.
-		await expectWaiting(page);
-		await page.tap(LEFT);
-		await expectSlide(page, BUTTON_INDEX - 1);
+		assert.equal(await page.evaluate(`document.elementFromPoint(${rect.right + 12}, ${rect.y}).className`), 'bouton', 'zone de toucher agrandie');
+		await page.tap({ x: rect.right + 12, y: rect.y });
+		await expectSlide(page, BUTTON_INDEX + 1);
 	});
 });
 

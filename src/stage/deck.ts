@@ -98,6 +98,12 @@ function buildSlide(slide: Slide, i: number): HTMLElement {
 		const percent = loading.appendChild(document.createElement('div'));
 		percent.className = 'chargement-pourcent';
 		percent.textContent = '0 %';
+		if (slide.termine) {
+			const done = loading.appendChild(document.createElement('p'));
+			done.className = 'chargement-termine';
+			done.hidden = true;
+			appendLine(done, slide.termine);
+		}
 	}
 	return section;
 }
@@ -185,15 +191,22 @@ let preparedIndex = -1;
 /** La slide courante a un bouton pas encore appuyé. */
 let waitingForButton = false;
 
-/** Lance le chargement de la slide `i`, ou passe directement à la suivante si elle n'en a pas. */
+/**
+ * Lance le chargement de la slide `i`, ou passe directement à la suivante si elle n'en a pas.
+ * À 100 % : message `termine` affiché (la slide reste), sinon slide suivante.
+ */
 function launch(i: number): void {
-	const seconds = SLIDES[i]?.chargement;
-	if (seconds === undefined) {
+	const slide = SLIDES[i];
+	if (slide?.chargement === undefined) {
 		goTo(i + 1);
 		return;
 	}
-	startLoading(slideEls[i], seconds, () => {
-		if (index === i) goTo(i + 1);
+	const done = slideEls[i].querySelector<HTMLElement>('.chargement-termine');
+	if (done) done.hidden = true;
+	startLoading(slideEls[i], slide.chargement, () => {
+		if (index !== i) return;
+		if (done) done.hidden = false;
+		else goTo(i + 1);
 	});
 }
 

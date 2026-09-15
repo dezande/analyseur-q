@@ -8,9 +8,11 @@
  *          **mots** entre doubles astérisques = mis en valeur
  *   image  fichier placé dans public/images/, ex. 'images/carte.png'
  *   chargement  fausse barre de chargement de cette durée en secondes (1 à 120) ;
- *          à 100 %, passe seule à la slide suivante
- *   bouton texte d'un bouton, ex. 'Lancer l\'analyse' : le chargement ne démarre qu'à l'appui
- *          (sans chargement, le bouton passe à la slide suivante)
+ *          à 100 %, passe seule à la slide suivante (sauf avec un message termine)
+ *   termine message affiché sous la barre à 100 %, ex. 'Analyse quantique terminée' ;
+ *          la slide reste alors affichée jusqu'au tap suivant
+ *   bouton texte d'un bouton, ex. 'Lancer l\'analyse' : passe à la slide suivante à l'appui
+ *          (avec un chargement sur la même slide, c'est lui qui démarre)
  *   note   note pour l'artiste, visible seulement si « Afficher les notes » est activé
  *
  * Le texte s'adapte tout seul à la taille de l'écran. Une erreur (slide vide, image absente,
@@ -33,8 +35,13 @@ export const SLIDES: readonly Slide[] = [
 		titre: 'Calibration',
 		texte: 'Posez le téléphone\nsur le jeu.',
 		bouton: 'Lancer l\'analyse',
-		chargement: 5,
-		note: 'Appuyer sur le bouton, puis poser le téléphone sur le jeu (un tap à droite lance aussi l\'analyse).',
+		note: 'Appuyer sur le bouton pour lancer l\'analyse (slide suivante).',
+	},
+	{
+		titre: 'Analyse en cours',
+		chargement: 6,
+		termine: 'Analyse quantique terminée',
+		note: 'La barre démarre à l\'arrivée sur la slide ; à 100 %, le message s\'affiche et la slide reste.',
 	},
 	{
 		grand: '52',
@@ -45,11 +52,6 @@ export const SLIDES: readonly Slide[] = [
 		texte: 'Une slide avec seulement du texte, plus long, pour vérifier que la taille des caractères s\'adapte à l\'écran. '
 			+ 'Tant que tout tient, le texte reste grand ; quand il y en a beaucoup, il rétrécit pour ne jamais sortir de l\'écran.\n\n'
 			+ 'Le texte est centré.\nLes retours à la ligne sont conservés.',
-	},
-	{
-		titre: 'Analyse en cours…',
-		chargement: 6,
-		note: 'Passe seule à la slide suivante à 100 %. Pause pendant que le menu est ouvert.',
 	},
 	{
 		titre: 'Fin',

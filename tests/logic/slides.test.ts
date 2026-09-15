@@ -65,13 +65,20 @@ test('checkSlides : bouton', () => {
 	assert.deepEqual(checkSlides([{ titre: 'x' }, { titre: 'fin', bouton: 'Suivant' }], none), ['slide 2 : bouton sur la dernière slide, il n\'y a pas de slide suivante']);
 });
 
+test('checkSlides : message termine', () => {
+	const none = (): boolean => false;
+	assert.deepEqual(checkSlides([{ titre: 'x' }, { titre: 'Analyse', chargement: 5, termine: 'Terminée' }], none), [], 'avec un message, le chargement peut finir le diaporama');
+	assert.deepEqual(checkSlides([{ titre: 'x', termine: 'Terminée' }, { titre: 'suite' }], none), ['slide 1 : message termine sans chargement']);
+	assert.deepEqual(checkSlides([{ titre: 'x', chargement: 5, termine: ' ' }, { titre: 'suite' }], none), ['slide 1 : message termine vide']);
+});
+
 test('checkSlides : chargement', () => {
 	const none = (): boolean => false;
 	assert.deepEqual(checkSlides([{ chargement: 5 }, { titre: 'suite' }], none), [], 'un chargement seul suffit');
 	assert.deepEqual(checkSlides([{ titre: 'x', chargement: 0 }, { titre: 'suite' }], none), ['slide 1 : chargement en secondes, entre 1 et 120 (reçu « 0 »)']);
 	assert.deepEqual(checkSlides([{ titre: 'x', chargement: '5' as never }, { titre: 'suite' }], none), ['slide 1 : chargement en secondes, entre 1 et 120 (reçu « 5 »)']);
 	assert.equal(checkSlides([{ titre: 'x', chargement: NaN }, { titre: 'suite' }], none).length, 1);
-	assert.deepEqual(checkSlides([{ titre: 'x' }, { titre: 'fin', chargement: 5 }], none), ['slide 2 : chargement sur la dernière slide, il n\'y a pas de slide suivante']);
+	assert.deepEqual(checkSlides([{ titre: 'x' }, { titre: 'fin', chargement: 5 }], none), ['slide 2 : chargement sur la dernière slide, il n\'y a pas de slide suivante (ajouter un message termine)']);
 });
 
 test('contenu du diaporama (src/content/slides.ts) : sans erreur', () => {
