@@ -1,0 +1,12 @@
+// Couleurs et typographies, figées à la compilation.
+// L'échelle du texte de chaque slide (--fit) est calculée à l'exécution : voir stage/deck.ts.
+
+$bg: #0b0b0d;
+$ink: #f1ede4;
+$ink-soft: rgba(241, 237, 228, .6);
+$ink-faint: rgba(241, 237, 228, .14);
+$accent: #e3a857;
+$panel: #151518;
+
+$serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", "Noto Serif", Georgia, serif;
+$sans: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;

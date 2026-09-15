@@ -1,0 +1,116 @@
+@use "tokens" as *;
+@use "mixins" as *;
+
+// Aides posées sur la scène : elles laissent passer les touchers.
+#counter,
+#progress,
+#note,
+#hold-ring,
+#black {
+	position: fixed;
+	pointer-events: none;
+}
+
+#counter {
+	z-index: 10;
+	top: calc(var(--safe-t) + 12px);
+	right: calc(var(--safe-r) + 16px);
+	font: 500 13px/1 $sans;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: .04em;
+	color: $ink-soft;
+}
+
+#progress {
+	z-index: 10;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 3px;
+	background: $ink-faint;
+}
+
+#progress-bar {
+	height: 100%;
+	background: $accent;
+	transform-origin: left center;
+	transition: transform .35s ease;
+}
+
+// Note pour l'artiste, en bas de l'écran.
+#note {
+	z-index: 11;
+	left: calc(var(--safe-l) + 12px);
+	right: calc(var(--safe-r) + 12px);
+	bottom: calc(var(--safe-b) + 14px);
+	max-height: 32vh;
+	overflow: hidden;
+	margin-inline: auto;
+	max-width: 720px;
+	padding: 10px 14px;
+	border-left: 3px solid $accent;
+	border-radius: 8px;
+	background: rgba(20, 20, 24, .88);
+	color: rgba(241, 237, 228, .85);
+	font: 15px/1.4 $sans;
+	white-space: pre-line;
+	text-align: left;
+}
+
+// Jauge de l'appui long : invisible au début, se remplit jusqu'à l'ouverture du menu.
+#hold-ring {
+	z-index: 30;
+	width: 96px;
+	height: 96px;
+	margin: -48px 0 0 -48px;
+	opacity: 0;
+
+	svg {
+		display: block;
+		width: 100%;
+		height: 100%;
+		transform: rotate(-90deg);
+	}
+
+	circle {
+		fill: none;
+		stroke-width: 6;
+	}
+
+	.track {
+		stroke: rgba(241, 237, 228, .18);
+	}
+
+	.fill {
+		stroke: $accent;
+		stroke-linecap: round;
+		stroke-dasharray: 100;
+		stroke-dashoffset: 100;
+	}
+
+	&.run {
+		animation: ring-show .2s ease var(--ring-delay) forwards;
+
+		.fill {
+			animation: ring-fill var(--ring-duration) linear var(--ring-delay) forwards;
+		}
+	}
+}
+
+@keyframes ring-show {
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes ring-fill {
+	to {
+		stroke-dashoffset: 0;
+	}
+}
+
+#black {
+	z-index: 40;
+	inset: 0;
+	background: #000;
+}

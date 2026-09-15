@@ -1,0 +1,147 @@
+@use "tokens" as *;
+@use "mixins" as *;
+
+// La scène reçoit tous les gestes : le navigateur ne doit ni défiler ni zoomer.
+#stage {
+	@include cover;
+	position: fixed;
+	touch-action: none;
+	cursor: pointer;
+}
+
+#deck {
+	@include cover;
+	overflow: hidden;
+}
+
+$duration: .45s;
+
+// Toutes les slides sont posées les unes sur les autres ; seule .current est visible.
+// Les autres gardent leur mise en page (visibility plutôt que display) pour que l'ajustement
+// du texte puisse les mesurer.
+.slide {
+	--fit: 1;
+	@include cover;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding:
+		calc(var(--safe-t) + max(28px, 7vmin))
+		calc(var(--safe-r) + max(22px, 7vmin))
+		calc(var(--safe-b) + max(28px, 7vmin))
+		calc(var(--safe-l) + max(22px, 7vmin));
+	overflow: hidden;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity $duration ease, transform $duration ease, visibility 0s linear $duration;
+
+	&.current {
+		opacity: 1;
+		visibility: visible;
+		transform: none;
+		transition-delay: 0s;
+	}
+}
+
+[data-transition="glisse"] {
+	.slide.before {
+		transform: translateX(-14%);
+	}
+
+	.slide.after {
+		transform: translateX(14%);
+	}
+}
+
+[data-transition="aucune"] .slide,
+.no-anim .slide {
+	transition: none;
+}
+
+.slide-body {
+	width: 100%;
+	max-width: 1100px;
+	text-align: center;
+	// Un mot trop long doit se voir (et faire rétrécir le texte), pas être coupé.
+	overflow-wrap: normal;
+	hyphens: manual;
+
+	> * + * {
+		margin-top: calc(var(--fit) * max(14px, 3.2vmin));
+	}
+}
+
+.titre {
+	margin: 0;
+	font: 400 calc(var(--fit) * clamp(32px, 11vmin, 120px)) / 1.12 $serif;
+	letter-spacing: .01em;
+	text-wrap: balance;
+
+	// Titre seul sur sa slide : plus grand.
+	&:only-child {
+		font-size: calc(var(--fit) * clamp(46px, 17vmin, 180px));
+	}
+}
+
+.grand {
+	margin: 0;
+	font: 300 calc(var(--fit) * clamp(80px, 34vmin, 380px)) / 1 $serif;
+	font-variant-numeric: lining-nums;
+	letter-spacing: -.02em;
+	color: $accent;
+}
+
+.texte {
+	font-size: calc(var(--fit) * clamp(22px, 7vmin, 64px));
+	line-height: 1.38;
+	text-wrap: pretty;
+
+	p {
+		margin: 0;
+	}
+
+	p + p {
+		margin-top: .8em;
+	}
+}
+
+strong {
+	font-weight: 600;
+	color: $accent;
+}
+
+.image {
+	display: block;
+	max-width: 100%;
+	max-height: calc(var(--fit) * 60vh);
+	margin-inline: auto;
+	object-fit: contain;
+}
+
+// Fausse barre de chargement (champ `chargement`).
+.chargement {
+	width: min(100%, 560px);
+	margin-inline: auto;
+}
+
+.chargement-piste {
+	height: calc(var(--fit) * max(10px, 1.8vmin));
+	overflow: hidden;
+	border-radius: 999px;
+	background: $ink-faint;
+}
+
+.chargement-bar {
+	height: 100%;
+	border-radius: inherit;
+	background: $accent;
+	transform: scaleX(0);
+	transform-origin: left center;
+}
+
+.chargement-pourcent {
+	margin-top: calc(var(--fit) * max(10px, 2vmin));
+	font-size: calc(var(--fit) * clamp(18px, 5vmin, 40px));
+	font-variant-numeric: tabular-nums;
+	color: $ink-soft;
+}

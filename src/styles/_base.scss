@@ -1,0 +1,52 @@
+@use "tokens" as *;
+@use "mixins" as *;
+
+:root {
+	--safe-t: env(safe-area-inset-top, 0px);
+	--safe-r: env(safe-area-inset-right, 0px);
+	--safe-b: env(safe-area-inset-bottom, 0px);
+	--safe-l: env(safe-area-inset-left, 0px);
+}
+
+// Hygiène tactile : ni surbrillance, ni callout, ni sélection.
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	-webkit-tap-highlight-color: transparent;
+	-webkit-touch-callout: none;
+	@include user-select(none);
+}
+
+html,
+body {
+	margin: 0;
+	height: 100%;
+	overflow: hidden;
+	overscroll-behavior: none;
+	background: $bg;
+	color: $ink;
+}
+
+body {
+	position: fixed;
+	inset: 0;
+	-webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%;
+	font-family: $sans;
+}
+
+[hidden] {
+	display: none !important;
+}
+
+// Vidéo de repli du maintien de l'écran allumé.
+#keep-awake {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 1px;
+	height: 1px;
+	opacity: .01;
+	pointer-events: none;
+}

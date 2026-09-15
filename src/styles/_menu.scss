@@ -1,0 +1,256 @@
+@use "tokens" as *;
+@use "mixins" as *;
+
+// Menu, par-dessus tout le reste.
+#menu {
+	position: fixed;
+	inset: 0;
+	z-index: 50;
+	display: flex;
+	justify-content: center;
+	background: $bg;
+	color: $ink;
+}
+
+.sheet {
+	width: 100%;
+	max-width: 560px;
+	height: 100%;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
+	touch-action: pan-y;
+	padding: calc(var(--safe-t) + 22px) calc(var(--safe-r) + 16px) calc(var(--safe-b) + 32px) calc(var(--safe-l) + 16px);
+
+	button {
+		min-height: 46px;
+		border-radius: 12px;
+		font-family: inherit;
+		font-size: 15px;
+		color: $ink;
+		background: rgba(255, 255, 255, .05);
+		border: 1px solid $ink-faint;
+		cursor: pointer;
+
+		&.primary {
+			border-color: transparent;
+			background: $accent;
+			color: #1a1206;
+			font-weight: 600;
+		}
+
+		&.link {
+			width: 100%;
+			margin-top: 6px;
+			border: none;
+			background: none;
+			color: $ink-soft;
+			font-size: 13px;
+			text-decoration: underline;
+		}
+	}
+}
+
+.menu-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	margin-bottom: 16px;
+
+	h1 {
+		margin: 0;
+		font: 400 30px/1.1 $serif;
+	}
+
+	span {
+		color: $ink-soft;
+		font-variant-numeric: tabular-nums;
+	}
+}
+
+.menu-version {
+	@include user-select(text);
+	margin: 4px 0 0;
+	font-size: 13px;
+	color: $ink-soft;
+	font-variant-numeric: tabular-nums;
+}
+
+.card {
+	margin-bottom: 12px;
+	padding: 14px 16px;
+	border-radius: 16px;
+	background: $panel;
+	border: 1px solid rgba(241, 237, 228, .08);
+}
+
+.row-label {
+	margin-bottom: 10px;
+	font-size: 15px;
+	color: $ink-soft;
+}
+
+.hint {
+	margin: 0 0 8px;
+	font-size: 13px;
+	color: $ink-soft;
+}
+
+// Liste des slides : défile seule si elle est longue.
+.slide-list {
+	display: grid;
+	gap: 6px;
+	max-height: 42vh;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+
+	.sheet & button {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 8px 12px;
+		text-align: left;
+		line-height: 1.3;
+
+		&.current {
+			border-color: $accent;
+			background: rgba(227, 168, 87, .12);
+		}
+	}
+
+	.num {
+		flex: none;
+		min-width: 2ch;
+		color: $accent;
+		font-variant-numeric: tabular-nums;
+		text-align: right;
+	}
+}
+
+.seg {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 6px;
+	padding: 4px;
+	border-radius: 12px;
+	background: rgba(0, 0, 0, .35);
+
+	.sheet & button {
+		min-height: 40px;
+		border-color: transparent;
+		background: transparent;
+
+		&[aria-checked="true"] {
+			background: rgba(227, 168, 87, .16);
+			color: $accent;
+			box-shadow: inset 0 0 0 1px $accent;
+		}
+	}
+}
+
+.options {
+	display: grid;
+}
+
+.toggle-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	padding: 4px 0;
+	font-size: 15px;
+	cursor: pointer;
+
+	& + & {
+		margin-top: 6px;
+		padding-top: 10px;
+		border-top: 1px solid rgba(241, 237, 228, .08);
+	}
+
+	input {
+		flex: none;
+		width: 22px;
+		height: 22px;
+		margin: 0;
+		accent-color: $accent;
+	}
+}
+
+// État du maintien de l'écran allumé (system/wake-lock.ts).
+.status {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	font-size: 15px;
+
+	small {
+		display: block;
+		margin-top: 3px;
+		font-size: 12px;
+		color: $ink-soft;
+	}
+}
+
+.dot {
+	flex: none;
+	width: 11px;
+	height: 11px;
+	border-radius: 50%;
+	background: #5d5a55;
+
+	&.lock {
+		background: #7fe0a0;
+		box-shadow: 0 0 10px rgba(127, 224, 160, .7);
+	}
+
+	&.video {
+		background: #f0c36a;
+		box-shadow: 0 0 10px rgba(240, 195, 106, .6);
+	}
+}
+
+.about {
+	display: grid;
+	gap: 8px;
+}
+
+.about-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 12px;
+	font-size: 14px;
+	color: $ink-soft;
+
+	span {
+		@include user-select(text);
+		color: $ink;
+		font-size: 13px;
+		font-variant-numeric: tabular-nums;
+		text-align: right;
+		overflow-wrap: anywhere;
+	}
+}
+
+.actions {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+	margin: 4px 0 12px;
+}
+
+.help {
+	font-size: 14px;
+	color: $ink-soft;
+
+	summary {
+		cursor: pointer;
+	}
+
+	ul {
+		margin: 10px 0 0;
+		padding-left: 18px;
+		font-size: 13px;
+		line-height: 1.6;
+	}
+}
