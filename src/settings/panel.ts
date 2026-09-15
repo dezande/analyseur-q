@@ -4,13 +4,16 @@
  */
 
 import { SLIDES } from '../content/slides.ts';
+import { BUILD } from '../kit/web/build.ts';
+import { $ } from '../kit/web/dom.ts';
+import { requestPersistentStorage } from '../kit/web/storage.ts';
+import { appCacheNames } from '../kit/web/updates.ts';
+import { describeWake, onWakeChange } from '../kit/web/wake-lock.ts';
 import { counterLabel } from '../logic/deck.ts';
 import { TRANSITIONS, type Settings } from '../logic/settings.ts';
 import { slideLabel } from '../logic/slides.ts';
 import { applyDisplaySettings, currentIndex, goTo, slideCount } from '../stage/deck.ts';
-import { BUILD } from '../system/build.ts';
-import { $ } from '../system/dom.ts';
-import { requestPersistentStorage, settings, storeSettings } from './store.ts';
+import { settings, storeSettings } from './store.ts';
 
 const menu = $('#menu');
 const list = $('#slide-list');
@@ -74,11 +77,17 @@ function refresh(): void {
  * c'est ce qui fait retélécharger l'app aux téléphones où elle est installée.
  */
 async function showCache(): Promise<void> {
-	const cell = $('#about-cache');
-	const controlled = 'serviceWorker' in navigator && Boolean(navigator.serviceWorker.controller);
-	const names = 'caches' in window ? (await caches.keys().catch(() => [])).filter((name) => name.startsWith('analyseur-q-')) : [];
-	cell.textContent = !controlled || names.length === 0 ? 'inactif' : names.join(', ');
+	const names = await appCacheNames('analyseur-q');
+	$('#about-cache').textContent = names.length === 0 ? 'inactif' : names.join(', ');
 }
+
+// État du maintien de l'écran allumé (kit/web/wake-lock.ts).
+onWakeChange((state) => {
+	const wake = describeWake(state);
+	$('#wake-dot').className = `dot ${state.lock ? 'lock' : state.video ? 'video' : 'off'}`;
+	$('#wake-text').textContent = wake.text;
+	$('#wake-detail').textContent = wake.detail;
+});
 
 /**
  * Clics ignorés dans le menu jusqu'à cet instant (performance.now()). Le doigt de l'appui long

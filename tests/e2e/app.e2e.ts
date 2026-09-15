@@ -10,9 +10,9 @@ import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } 
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { startStaticServer, type StaticServer } from '../../scripts/static-server.ts';
+import { Browser, SCREEN, type Page, type Point } from '../../src/kit/node/chrome.ts';
+import { startStaticServer, type StaticServer } from '../../src/kit/node/static-server.ts';
 import { SLIDES } from '../../src/content/slides.ts';
-import { Browser, SCREEN, type Page, type Point } from './chrome.ts';
 
 /** Clés d'enregistrement (src/settings/store.ts). */
 const SETTINGS_KEY = 'analyseur-q:settings:v1';
@@ -513,13 +513,13 @@ async function withSiteCopy(run: (dir: string, site: StaticServer) => Promise<vo
 
 /**
  * Publie une nouvelle version dans la copie : numéro différent, donc empreinte et nom du cache différents
- * (voir tests/build/stamp-build.test.ts). Renvoie [ancien cache, nouveau cache].
+ * (voir tests/stamp-build.test.ts du kit). Renvoie [ancien cache, nouveau cache].
  */
 function publishNewVersion(dir: string, version: string): [string, string] {
 	const sw = join(dir, 'sw.js');
 	const oldCache = readFileSync(sw, 'utf8').match(/const CACHE = '([^']+)'/)?.[1] ?? '';
 	const newCache = `analyseur-q-version${version}`;
-	const build = join(dir, 'system', 'build.js');
+	const build = join(dir, 'kit', 'web', 'build.js');
 	writeFileSync(build, readFileSync(build, 'utf8').replace(/version: '[^']*'/, `version: '${version}'`));
 	writeFileSync(sw, readFileSync(sw, 'utf8').replace(oldCache, newCache));
 	return [oldCache, newCache];

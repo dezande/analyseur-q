@@ -4,13 +4,13 @@
  * ce module relaie les événements du navigateur et applique les effets.
  */
 
+import { $ } from '../kit/web/dom.ts';
+import { appPoint } from '../kit/web/orientation.ts';
+import { keepScreenAwake } from '../kit/web/wake-lock.ts';
 import { GESTURE, GestureTracker } from '../logic/gestures.ts';
 import { keyAction } from '../logic/keys.ts';
 import { closeMenu, holdReleased, isMenuOpen, openMenu } from '../settings/panel.ts';
 import { settings } from '../settings/store.ts';
-import { $ } from '../system/dom.ts';
-import { appPoint } from '../system/orientation.ts';
-import { keepScreenAwake } from '../system/wake-lock.ts';
 import { isBlack, move, setBlack } from './deck.ts';
 
 const stage = $('#stage');
@@ -56,7 +56,7 @@ function stopHold(): void {
 
 /* ---------- Toucher ---------- */
 
-// Coordonnées dans le repère de l'app, qui peut être pivotée (system/orientation.ts).
+// Coordonnées dans le repère de l'app, qui peut être pivotée (kit/web/orientation.ts).
 
 stage.addEventListener('pointerdown', (event) => {
 	if (event.pointerType === 'mouse' && event.button !== 0) return;

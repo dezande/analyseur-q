@@ -102,7 +102,10 @@ npm run deploy -- --dry-run # vérifications, build et tests seulement, sans pus
 
 Il faut Node 24 ou plus récent. TypeScript et Sass servent uniquement au build : l'app publiée n'a aucune dépendance.
 
+Le code commun aux accessoires de scène (écran allumé, portrait, hors-ligne et mises à jour, build, déploiement, pilotage de Chrome) vient du kit **[kit-scene](https://github.com/dezande/kit-scene)**, sous-module git monté dans `src/kit/`. L'app utilise une version précise du kit ; pour prendre la dernière, voir le README du kit.
+
 ```sh
+git submodule update --init   # après un clone : récupère le kit
 npm install
 npm run serve       # build puis serveur local sur http://localhost:8000
 npm test            # tests unitaires (quelques secondes)
@@ -115,6 +118,6 @@ Organisation de `src/` : voir le commentaire en tête de [`src/app.ts`](src/app.
 
 ### Tests
 
-- **Tests du build** (`tests/build/`, dans `npm test`) : `scripts/stamp-build.ts` dans un dépôt git temporaire. Nouvelle version ou code modifié : nouveau nom de cache ; rien de changé : même nom.
 - **Tests unitaires** (`tests/logic/`) : la logique pure de `src/logic/` sous Node (gestes avec des rythmes lents et hésitants, navigation, touches, réglages, mise en valeur du texte) et la validité du contenu de `src/content/slides.ts`.
 - **Tests dans Chrome** (`tests/e2e/`) : l'app compilée dans Chrome sans interface, sur un écran de téléphone simulé, avec de vrais événements tactiles et clavier. Taps, tap lent, glissements, appui de 3 s et appui abandonné, deux doigts, clavier et écran noir, menu, réglages et position enregistrés, données abîmées, aucune slide qui déborde en portrait comme en paysage, écran allumé (verrou et vidéo), fausse barre de chargement, nouvelle version publiée (nouveau cache, ancien supprimé, réglages et position conservés, rechargement seulement si l'écran n'a pas été touché), téléphone tourné dans les deux sens (app pivotée, gestes et défilement du menu dans l'axe du téléphone), appui long sans clic parasite dans le menu, fonctionnement serveur arrêté. Il faut Google Chrome, trouvé automatiquement (sinon, indiquez son chemin dans `CHROME_PATH`).
+- Le calcul du nom de cache au build et les calculs de rotation sont testés dans le kit.

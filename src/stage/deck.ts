@@ -8,9 +8,9 @@ import { SLIDES } from '../content/slides.ts';
 import { applyMove, clampIndex, counterLabel, type Move } from '../logic/deck.ts';
 import { paragraphs, parseInline, type Slide } from '../logic/slides.ts';
 import { loadPosition, settings, storePosition } from '../settings/store.ts';
-import { $ } from '../system/dom.ts';
+import { $ } from '../kit/web/dom.ts';
 // Rotation calculée avant le premier ajustement du texte.
-import '../system/orientation.ts';
+import '../kit/web/orientation.ts';
 import { startLoading, stopLoading } from './loading.ts';
 
 const deckEl = $('#deck');

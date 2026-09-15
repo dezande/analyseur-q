@@ -17,54 +17,33 @@
  *   settings/    menu
  *     store.ts     réglages et position, enregistrés sur l'appareil
  *     panel.ts     menu : aller à une slide, réglages
- *   system/      services du navigateur
- *     dom.ts         accès au DOM
- *     orientation.ts toujours en portrait : l'app pivote quand le téléphone est en paysage
- *     wake-lock.ts   écran toujours allumé
- *     build.ts       numéro de version
+ *   kit/         code commun des accessoires de scène (sous-module kit-scene, voir son README) :
+ *                écran allumé, portrait, hors-ligne et mises à jour, stockage, version
  *   logic/       logique pure, sans DOM, testée sous Node (tests/logic/)
  *     slides.ts      forme d'une slide, mise en valeur, vérification du contenu
  *     deck.ts        position dans le diaporama
  *     gestures.ts    décision de chaque geste
  *     keys.ts        touches du clavier
  *     settings.ts    forme et validation des réglages
- *     orientation.ts rotation du verrou portrait et conversion des coordonnées
- *   sw/          service worker (cache hors-ligne)
+ *   sw/          compilation du service worker du kit (kit/sw/sw.ts)
  *   styles/      styles Sass
  *
  * Importer un module installe ses écouteurs : ce fichier ne fait que le démarrage.
  */
 
+import { requestPersistentStorage } from './kit/web/storage.ts';
+import { setupUpdates } from './kit/web/updates.ts';
+import { keepScreenAwake } from './kit/web/wake-lock.ts';
 import { isMenuOpen } from './settings/panel.ts';
-import { requestPersistentStorage } from './settings/store.ts';
 import { forgetTouches, wasTouchedSinceShown } from './stage/input.ts';
-import { keepScreenAwake } from './system/wake-lock.ts';
 
 void keepScreenAwake();
 void requestPersistentStorage();
 
-/* ---------- Mises à jour ---------- */
-
-document.addEventListener('visibilitychange', () => {
-	if (document.visibilityState !== 'visible') return;
-	forgetTouches();
-	if ('serviceWorker' in navigator) {
-		navigator.serviceWorker.getRegistration().then((registration) => registration?.update()).catch(() => {});
-	}
+// Mises à jour : rechargement automatique seulement si personne n'a touché l'écran depuis
+// l'ouverture (ou le retour au premier plan) et que le menu est fermé, jamais en pleine routine.
+// La slide en cours est enregistrée, elle serait de toute façon reprise.
+setupUpdates({
+	canReload: () => !wasTouchedSinceShown() && !isMenuOpen(),
+	onVisible: forgetTouches,
 });
-
-if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-	// Nouvelle version installée : on recharge pour l'afficher, mais seulement si personne n'a
-	// touché l'écran depuis l'ouverture (ou le retour au premier plan) : jamais en pleine routine.
-	// La slide en cours est enregistrée, elle serait de toute façon reprise.
-	// Au tout premier chargement, la prise en main par le premier service worker n'est pas une
-	// nouvelle version : rien à recharger. Les suivantes, si.
-	let hadController = Boolean(navigator.serviceWorker.controller);
-	navigator.serviceWorker.addEventListener('controllerchange', () => {
-		if (hadController && !wasTouchedSinceShown() && !isMenuOpen()) location.reload();
-		hadController = true;
-	});
-	window.addEventListener('load', () => {
-		navigator.serviceWorker.register('sw.js').catch(() => {});
-	});
-}

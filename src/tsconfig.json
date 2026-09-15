@@ -8,5 +8,5 @@
 		"rootDir": ".",
 		"outDir": "../dist"
 	},
-	"include": ["*.ts", "content", "logic", "settings", "stage", "system"]
+	"include": ["*.ts", "content", "logic", "settings", "stage", "kit/web"]
 }

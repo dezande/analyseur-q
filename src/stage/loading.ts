@@ -7,7 +7,7 @@
  */
 
 import { LOADING, loadingProgress, percentLabel } from '../logic/loading.ts';
-import { $ } from '../system/dom.ts';
+import { $ } from '../kit/web/dom.ts';
 
 const menu = $('#menu');
 const black = $('#black');

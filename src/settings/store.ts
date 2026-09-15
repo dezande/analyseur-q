@@ -9,60 +9,27 @@
  * en cas de changement de forme, relire l'ancienne valeur et la convertir.
  */
 
+import { readStored, writeStored } from '../kit/web/storage.ts';
 import { sanitizeSettings, type Settings } from '../logic/settings.ts';
 
 const SETTINGS_KEY = 'analyseur-q:settings:v1';
 const POSITION_KEY = 'analyseur-q:position:v1';
-/** Clés d'avant le renommage du projet, relues si les nouvelles n'existent pas encore. */
-const LEGACY_KEYS: Record<string, string> = {
-	[SETTINGS_KEY]: 'rain-man:settings:v1',
-	[POSITION_KEY]: 'rain-man:position:v1',
-};
-
-function read(key: string): unknown {
-	try {
-		return JSON.parse(localStorage.getItem(key) ?? localStorage.getItem(LEGACY_KEYS[key]) ?? 'null');
-	} catch {
-		return null;
-	}
-}
-
-function write(key: string, value: unknown): void {
-	try {
-		localStorage.setItem(key, JSON.stringify(value));
-	} catch {
-		// Stockage indisponible : gardé pour la session seulement.
-	}
-}
+/** Clés d'avant le renommage du projet (rain-man), relues si les nouvelles n'existent pas encore. */
+const LEGACY_SETTINGS_KEY = 'rain-man:settings:v1';
+const LEGACY_POSITION_KEY = 'rain-man:position:v1';
 
 /**
  * Réglages en cours. Les autres modules lisent ce binding (toujours à jour) et peuvent modifier
  * ses champs, puis appellent storeSettings() pour valider et enregistrer.
  */
-export let settings: Settings = sanitizeSettings(read(SETTINGS_KEY));
+export let settings: Settings = sanitizeSettings(readStored(SETTINGS_KEY, LEGACY_SETTINGS_KEY));
 
 /** Valide et enregistre les réglages. Avec `null` : rétablit les réglages par défaut. */
 export function storeSettings(next: unknown = settings): void {
 	settings = sanitizeSettings(next);
-	write(SETTINGS_KEY, settings);
-}
-
-export type StorageState = 'persistant' | 'non garanti' | 'inconnu';
-
-/**
- * Demande au navigateur de ne jamais effacer de lui-même les données de l'app (réglages, position,
- * cache hors-ligne), même en manque de place. Renvoie l'état obtenu.
- */
-export async function requestPersistentStorage(): Promise<StorageState> {
-	try {
-		if (!navigator.storage?.persist) return 'inconnu';
-		if (await navigator.storage.persisted()) return 'persistant';
-		return (await navigator.storage.persist()) ? 'persistant' : 'non garanti';
-	} catch {
-		return 'inconnu';
-	}
+	writeStored(SETTINGS_KEY, settings);
 }
 
 /** Slide affichée à la dernière utilisation (à valider avec clampIndex). */
-export const loadPosition = (): unknown => read(POSITION_KEY);
-export const storePosition = (index: number): void => write(POSITION_KEY, index);
+export const loadPosition = (): unknown => readStored(POSITION_KEY, LEGACY_POSITION_KEY);
+export const storePosition = (index: number): void => writeStored(POSITION_KEY, index);
