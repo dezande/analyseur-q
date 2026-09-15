@@ -12,80 +12,84 @@
 	<meta name="apple-mobile-web-app-title" content="Analyseur Q">
 	<meta name="format-detection" content="telephone=no">
 	<meta name="description" content="Analyseur d'ondes quantiques des cartes à jouer, modèle AQ-52">
-	<title>Analyseur d'ondes quantiques des cartes à jouer</title>
+	<title>Analyseur Q</title>
 	<link rel="manifest" href="manifest.json">
 	<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 	<link rel="apple-touch-icon" href="icons/icon-192.png">
 	<link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<main id="stage" aria-live="polite">
-		<div id="deck"></div>
-	</main>
+	<!-- Toute l'app : pivote en paysage pour rester en portrait (src/system/orientation.ts). -->
+	<div id="app">
+		<main id="stage" aria-live="polite">
+			<div id="deck"></div>
+		</main>
 
-	<div id="counter" aria-hidden="true"></div>
-	<div id="progress" aria-hidden="true"><div id="progress-bar"></div></div>
-	<div id="note" hidden></div>
-	<div id="hold-ring" aria-hidden="true" hidden><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="44"/><circle class="fill" cx="50" cy="50" r="44" pathLength="100"/></svg></div>
-	<div id="black" hidden></div>
+		<div id="counter" aria-hidden="true"></div>
+		<div id="progress" aria-hidden="true"><div id="progress-bar"></div></div>
+		<div id="note" hidden></div>
+		<div id="hold-ring" aria-hidden="true" hidden><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="44"/><circle class="fill" cx="50" cy="50" r="44" pathLength="100"/></svg></div>
+		<div id="black" hidden></div>
 
-	<section id="menu" hidden aria-label="Menu">
-		<div class="sheet">
-			<header class="menu-head">
-				<div>
-					<h1>Menu</h1>
-					<p class="menu-version" id="menu-version"></p>
+		<section id="menu" hidden aria-label="Menu">
+			<div class="sheet">
+				<header class="menu-head">
+					<div>
+						<h1>Menu</h1>
+						<p class="menu-version" id="menu-version"></p>
+					</div>
+					<span id="menu-position"></span>
+				</header>
+
+				<div class="card">
+					<div class="row-label">Aller à la slide</div>
+					<div id="slide-list" class="slide-list"></div>
 				</div>
-				<span id="menu-position"></span>
-			</header>
 
-			<div class="card">
-				<div class="row-label">Aller à la slide</div>
-				<div id="slide-list" class="slide-list"></div>
+				<div class="actions">
+					<button type="button" id="restart-btn">Recommencer au début</button>
+					<button type="button" id="close-btn" class="primary">Fermer</button>
+				</div>
+
+				<div class="card">
+					<div class="row-label">Transition</div>
+					<div class="seg" id="transition-seg" role="radiogroup" aria-label="Transition"></div>
+				</div>
+
+				<div class="card options">
+					<p class="hint">Aides visuelles : à masquer avant de jouer si le public voit l'écran.</p>
+					<label class="toggle-row" for="show-counter">Numéro de slide <input id="show-counter" type="checkbox"></label>
+					<label class="toggle-row" for="show-progress">Barre de progression <input id="show-progress" type="checkbox"></label>
+					<label class="toggle-row" for="show-notes">Notes pour l'artiste <input id="show-notes" type="checkbox"></label>
+					<label class="toggle-row" for="show-hold-ring">Jauge de l'appui long <input id="show-hold-ring" type="checkbox"></label>
+				</div>
+
+				<div class="card status">
+					<span class="dot" id="wake-dot"></span>
+					<div><span id="wake-text">Écran : verrou inactif</span><small id="wake-detail"></small></div>
+				</div>
+
+				<div class="card about">
+					<div class="about-row">Version <span id="about-version"></span></div>
+					<div class="about-row">Cache hors-ligne <span id="about-cache"></span></div>
+					<div class="about-row">Stockage <span id="about-storage"></span></div>
+					<div class="about-row">Affichage <span id="about-display"></span></div>
+				</div>
+
+				<details class="card help">
+					<summary>Gestes et touches</summary>
+					<ul>
+						<li>Tap sur la droite de l'écran, ou glisser vers la gauche : slide suivante.</li>
+						<li>Tap sur le tiers gauche, ou glisser vers la droite : slide précédente.</li>
+						<li>Appui de 3 s n'importe où : ce menu.</li>
+						<li>Clavier ou télécommande : → espace Page suivante pour avancer, ← Page précédente pour reculer, Échap ou M pour le menu, B pour l'écran noir.</li>
+					</ul>
+				</details>
+
+				<button type="button" id="defaults-btn" class="link">Rétablir les réglages par défaut</button>
 			</div>
-
-			<div class="actions">
-				<button type="button" id="restart-btn">Recommencer au début</button>
-				<button type="button" id="close-btn" class="primary">Fermer</button>
-			</div>
-
-			<div class="card">
-				<div class="row-label">Transition</div>
-				<div class="seg" id="transition-seg" role="radiogroup" aria-label="Transition"></div>
-			</div>
-
-			<div class="card options">
-				<p class="hint">Aides visuelles : à masquer avant de jouer si le public voit l'écran.</p>
-				<label class="toggle-row" for="show-counter">Numéro de slide <input id="show-counter" type="checkbox"></label>
-				<label class="toggle-row" for="show-progress">Barre de progression <input id="show-progress" type="checkbox"></label>
-				<label class="toggle-row" for="show-notes">Notes pour l'artiste <input id="show-notes" type="checkbox"></label>
-				<label class="toggle-row" for="show-hold-ring">Jauge de l'appui long <input id="show-hold-ring" type="checkbox"></label>
-			</div>
-
-			<div class="card status">
-				<span class="dot" id="wake-dot"></span>
-				<div><span id="wake-text">Écran : verrou inactif</span><small id="wake-detail"></small></div>
-			</div>
-
-			<div class="card about">
-				<div class="about-row">Version <span id="about-version"></span></div>
-				<div class="about-row">Cache hors-ligne <span id="about-cache"></span></div>
-				<div class="about-row">Affichage <span id="about-display"></span></div>
-			</div>
-
-			<details class="card help">
-				<summary>Gestes et touches</summary>
-				<ul>
-					<li>Tap sur la droite de l'écran, ou glisser vers la gauche : slide suivante.</li>
-					<li>Tap sur le tiers gauche, ou glisser vers la droite : slide précédente.</li>
-					<li>Appui de 3 s n'importe où : ce menu.</li>
-					<li>Clavier ou télécommande : → espace Page suivante pour avancer, ← Page précédente pour reculer, Échap ou M pour le menu, B pour l'écran noir.</li>
-				</ul>
-			</details>
-
-			<button type="button" id="defaults-btn" class="link">Rétablir les réglages par défaut</button>
-		</div>
-	</section>
+		</section>
+	</div>
 
 		<video id="keep-awake" muted playsinline webkit-playsinline loop preload="auto" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1">
 		<source type="video/webm" src="data:video/webm;base64,GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQRChYECGFOAZwEAAAAAAAKCEU2bdLpNu4tTq4QVSalmU6yBoU27i1OrhBZUrmtTrIHWTbuMU6uEElTDZ1OsggEnTbuMU6uEHFO7a1OsggJs7AEAAAAAAABZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVSalmsCrXsYMPQkBNgIxMYXZmNjEuNy4xMDBXQYxMYXZmNjEuNy4xMDBEiYhAn0AAAAAAABZUrmvMrgEAAAAAAABD14EBc8WIbmYwf2A4k16cgQAitZyDdW5kiIEAhoVWX1ZQOIOBASPjg4Q7msoA4JSwgQG6gQGagQJTwIEBVbCEVbmBARJUw2dAj3Nzn2PAgGfImUWjh0VOQ09ERVJEh4xMYXZmNjEuNy4xMDBzc+pjwItjxYhuZjB/YDiTXmfIkUWjikFMUEhBX01PREVEh4ExZ8ihRaOHRU5DT0RFUkSHlExhdmM2MS4xOS4xMDAgbGlidnB4Z8ihRaOIRFVSQVRJT05Eh5MwMDowMDowMi4wMDAwMDAwMDAAH0O2dUCq54EAoNuhooEAAAAQAgCdASoBAAEAC8cIhYWImYSIP4IADA1gAP7mtQB1obSmsu6BAaWtcAIAnQEqAQABAAvHCIWFiJmEiD+CAnWqAgy9zgD+6NcfjebzWtb/G83mtWIAoMihmIED6ACxAQAvEfwAGAAwP/QMAAAA/ua1AHWhp6al7oEBpaCxAQAvEfwAGAAwP/QMAMIA/ujXH43m81rW/xvN5rViAPuC/BgcU7trkbuPs4EAt4r3gQHxggG88IED">

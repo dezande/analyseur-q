@@ -1,5 +1,5 @@
 /*
- * Analyseur d'ondes quantiques des cartes à jouer (nom court : Analyseur Q) : point d'entrée de l'app.
+ * Analyseur Q (analyseur d'ondes quantiques des cartes à jouer) : point d'entrée de l'app.
  * Accessoire de la routine Rain Man.
  *
  * Un diaporama plein écran, 100 % hors-ligne, pour accompagner la routine.
@@ -19,6 +19,7 @@
  *     panel.ts     menu : aller à une slide, réglages
  *   system/      services du navigateur
  *     dom.ts         accès au DOM
+ *     orientation.ts toujours en portrait : l'app pivote quand le téléphone est en paysage
  *     wake-lock.ts   écran toujours allumé
  *     build.ts       numéro de version
  *   logic/       logique pure, sans DOM, testée sous Node (tests/logic/)
@@ -27,6 +28,7 @@
  *     gestures.ts    décision de chaque geste
  *     keys.ts        touches du clavier
  *     settings.ts    forme et validation des réglages
+ *     orientation.ts rotation du verrou portrait et conversion des coordonnées
  *   sw/          service worker (cache hors-ligne)
  *   styles/      styles Sass
  *
@@ -34,10 +36,12 @@
  */
 
 import { isMenuOpen } from './settings/panel.ts';
+import { requestPersistentStorage } from './settings/store.ts';
 import { forgetTouches, wasTouchedSinceShown } from './stage/input.ts';
 import { keepScreenAwake } from './system/wake-lock.ts';
 
 void keepScreenAwake();
+void requestPersistentStorage();
 
 /* ---------- Mises à jour ---------- */
 

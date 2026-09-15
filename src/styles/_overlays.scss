@@ -43,7 +43,7 @@
 	left: calc(var(--safe-l) + 12px);
 	right: calc(var(--safe-r) + 12px);
 	bottom: calc(var(--safe-b) + 14px);
-	max-height: 32vh;
+	max-height: calc(var(--app-h) * .32);
 	overflow: hidden;
 	margin-inline: auto;
 	max-width: 720px;

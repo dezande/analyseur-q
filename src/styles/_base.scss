@@ -40,6 +40,44 @@ body {
 	display: none !important;
 }
 
+// Toute l'app. En paysage sur téléphone, elle pivote de ±90° pour rester dans l'axe du téléphone
+// (system/orientation.ts) ; les marges de sécurité suivent la rotation.
+// Les éléments fixes qu'elle contient se placent par rapport à elle.
+#app {
+	--app-w: 100vw;
+	--app-h: 100vh;
+	position: fixed;
+	inset: 0;
+	overflow: hidden;
+
+	&[data-rotation="-90"],
+	&[data-rotation="90"] {
+		inset: auto;
+		top: 50%;
+		left: 50%;
+		width: var(--app-w);
+		height: var(--app-h);
+	}
+
+	// Haut de l'app à gauche de l'écran.
+	&[data-rotation="-90"] {
+		--safe-t: env(safe-area-inset-left, 0px);
+		--safe-r: env(safe-area-inset-top, 0px);
+		--safe-b: env(safe-area-inset-right, 0px);
+		--safe-l: env(safe-area-inset-bottom, 0px);
+		transform: translate(-50%, -50%) rotate(-90deg);
+	}
+
+	// Haut de l'app à droite de l'écran.
+	&[data-rotation="90"] {
+		--safe-t: env(safe-area-inset-right, 0px);
+		--safe-r: env(safe-area-inset-bottom, 0px);
+		--safe-b: env(safe-area-inset-left, 0px);
+		--safe-l: env(safe-area-inset-top, 0px);
+		transform: translate(-50%, -50%) rotate(90deg);
+	}
+}
+
 // Vidéo de repli du maintien de l'écran allumé.
 #keep-awake {
 	position: fixed;

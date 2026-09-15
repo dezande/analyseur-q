@@ -1,14 +1,14 @@
 {
 	"id": "./",
-	"name": "Analyseur d'ondes quantiques des cartes à jouer",
+	"name": "Analyseur Q",
 	"short_name": "Analyseur Q",
-	"description": "Analyseur d'ondes quantiques des cartes à jouer, modèle AQ-52. 100 % hors-ligne.",
+	"description": "Analyseur Q : analyseur d'ondes quantiques des cartes à jouer, modèle AQ-52. 100 % hors-ligne.",
 	"lang": "fr",
 	"dir": "ltr",
 	"start_url": "./",
 	"scope": "./",
 	"display": "fullscreen",
-	"orientation": "any",
+	"orientation": "portrait",
 	"background_color": "#0b0b0d",
 	"theme_color": "#0b0b0d",
 	"icons": [

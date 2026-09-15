@@ -2,7 +2,7 @@
  * LE CONTENU DU DIAPORAMA : une entrée par slide, dans l'ordre.
  *
  * Champs (tous facultatifs, au moins un parmi titre, grand, texte, image, chargement) :
- *   titre  en haut de la slide
+ *   titre  en haut de la slide ; **titre** entre doubles astérisques : en orange
  *   grand  un mot ou un nombre en très grand
  *   texte  texte courant ; retour à la ligne conservé, ligne vide = nouveau paragraphe,
  *          **mots** entre doubles astérisques = mis en valeur
@@ -22,7 +22,7 @@ import type { Slide } from '../logic/slides.ts';
 
 export const SLIDES: readonly Slide[] = [
 	{
-		titre: 'Analyseur d\'ondes quantiques des cartes à jouer',
+		titre: '**Analyseur Q**',
 		image: 'images/logo.svg',
 		texte: 'Modèle AQ-52',
 		note: 'Tap à droite ou glisser vers la gauche pour avancer.',

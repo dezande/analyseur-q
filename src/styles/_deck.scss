@@ -82,6 +82,11 @@ $duration: .45s;
 	letter-spacing: .01em;
 	text-wrap: balance;
 
+	// Titre mis en valeur (**titre**) : en couleur, sans passer en gras.
+	strong {
+		font-weight: inherit;
+	}
+
 	// Titre seul sur sa slide : plus grand.
 	&:only-child {
 		font-size: calc(var(--fit) * clamp(46px, 17vmin, 180px));
@@ -118,13 +123,13 @@ strong {
 .image {
 	display: block;
 	max-width: 100%;
-	max-height: calc(var(--fit) * 60vh);
+	max-height: calc(var(--fit) * var(--app-h) * .6);
 	margin-inline: auto;
 	object-fit: contain;
 
 	// Avec du texte sur la slide, l'image lui laisse la place.
 	.slide-body:has(> :not(.image)) & {
-		max-height: calc(var(--fit) * 36vh);
+		max-height: calc(var(--fit) * var(--app-h) * .36);
 	}
 }
 

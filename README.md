@@ -1,6 +1,6 @@
-# Analyseur d'ondes quantiques des cartes à jouer
+# Analyseur Q
 
-Nom court (sous l'icône) : **Analyseur Q**, modèle AQ-52.
+Analyseur d'ondes quantiques des cartes à jouer, modèle AQ-52.
 
 Diaporama plein écran pour accompagner la routine Rain Man de Leonard Green, en français, dans l'habillage d'un faux appareil pseudo-scientifique.
 Le dépôt et l'adresse gardent le nom `rain-man` : changer l'adresse casserait l'app déjà installée sur les téléphones.
@@ -12,7 +12,7 @@ Tout le texte est dans **[`src/content/slides.ts`](src/content/slides.ts)** : un
 
 ```ts
 {
-	titre: 'Analyseur d\'ondes quantiques des cartes à jouer',
+	titre: '**Analyseur Q**',
 	grand: '52',
 	texte: 'Un paragraphe.\n\nUn autre, avec un **mot mis en valeur**.',
 	image: 'images/carte.png',
@@ -22,7 +22,7 @@ Tout le texte est dans **[`src/content/slides.ts`](src/content/slides.ts)** : un
 
 | Champ | Rôle |
 | --- | --- |
-| `titre` | En haut de la slide ; seul sur la slide, il est affiché plus grand |
+| `titre` | En haut de la slide ; seul sur la slide, il est affiché plus grand. `**titre**` : en orange |
 | `grand` | Un mot ou un nombre en très grand |
 | `texte` | Texte courant. Retour à la ligne conservé, ligne vide = nouveau paragraphe, `**mots**` = mis en valeur |
 | `image` | Fichier placé dans `public/images/` (le logo : `images/logo.svg`). Plus petite quand la slide contient aussi du texte |
@@ -61,7 +61,13 @@ Le **menu** permet d'aller directement à une slide, de recommencer au début, d
 
 Deux moyens actifs en même temps, relancés à chaque toucher et à chaque retour au premier plan : l'API Screen Wake Lock et une vidéo muette invisible jouée en boucle. La vidéo reste active même quand l'API répond : sur iPhone avant iOS 18.4, dans l'app installée sur l'écran d'accueil, l'API accepte la demande sans garder l'écran allumé. Le menu indique « Screen Wake Lock API + vidéo muette en boucle » quand les deux tournent.
 
-La slide en cours et les réglages sont enregistrés sur l'appareil : si l'app est fermée par erreur, elle reprend là où elle en était.
+La slide en cours et les réglages sont enregistrés sur l'appareil : si l'app est fermée par erreur, elle reprend là où elle en était. **Ils sont conservés quand l'app se met à jour** : une mise à jour ne remplace que le cache hors-ligne. L'app demande aussi au navigateur un stockage persistant, pour qu'il ne les efface pas de lui-même ; le menu en affiche l'état (« Stockage »).
+
+### Toujours en portrait
+
+Sur Android, l'app installée verrouille l'orientation. Sur iPhone, une page web ne peut pas le faire : quand le téléphone passe en paysage, l'app pivote tout son affichage pour rester dans l'axe du téléphone. Taps, glissements, appui long et défilement du menu suivent le téléphone, pas l'écran. Sur ordinateur, rien ne pivote.
+
+Juste après l'ouverture du menu par l'appui long, les touchers dans le menu sont ignorés un court instant : le doigt qui se relève ne clique pas sur le bouton placé dessous.
 
 ## Installation
 
@@ -76,7 +82,8 @@ Sur iPhone, l'app installée a son propre stockage, séparé de Safari : **ouvre
 
 1. **Hors-ligne** : ouvrir l'app installée avec du réseau, ouvrir le menu (appui de 3 s) et vérifier que « Cache hors-ligne » affiche un nom `rain-man-…`. Fermer l'app (la faire glisser vers le haut dans le sélecteur d'apps), passer en mode avion, la rouvrir, faire défiler toutes les slides.
 2. **Écran allumé** : dans Réglages → Luminosité et affichage → Verrouillage automatique, choisir 30 secondes. Ouvrir l'app, toucher une fois l'écran, puis ne plus y toucher pendant 2 minutes : l'écran ne doit ni baisser ni s'éteindre. Refaire le test en mode économie d'énergie, qui peut couper la vidéo. Remettre ensuite le verrouillage automatique habituel.
-3. **Version** : après une publication, rouvrir l'app avec du réseau, la fermer et la rouvrir : le menu doit afficher le nouveau numéro de version et un nouveau nom de cache.
+3. **Portrait** : tourner le téléphone dans les deux sens : l'affichage reste dans l'axe du téléphone, les taps à droite (côté droit du téléphone) avancent toujours.
+4. **Version** : après une publication, rouvrir l'app avec du réseau, la fermer et la rouvrir : le menu doit afficher le nouveau numéro de version et un nouveau nom de cache, et les réglages (transition, aides masquées) doivent être restés les mêmes.
 
 ## Publication
 
@@ -110,4 +117,4 @@ Organisation de `src/` : voir le commentaire en tête de [`src/app.ts`](src/app.
 
 - **Tests du build** (`tests/build/`, dans `npm test`) : `scripts/stamp-build.ts` dans un dépôt git temporaire. Nouvelle version ou code modifié : nouveau nom de cache ; rien de changé : même nom.
 - **Tests unitaires** (`tests/logic/`) : la logique pure de `src/logic/` sous Node (gestes avec des rythmes lents et hésitants, navigation, touches, réglages, mise en valeur du texte) et la validité du contenu de `src/content/slides.ts`.
-- **Tests dans Chrome** (`tests/e2e/`) : l'app compilée dans Chrome sans interface, sur un écran de téléphone simulé, avec de vrais événements tactiles et clavier. Taps, tap lent, glissements, appui de 3 s et appui abandonné, deux doigts, clavier et écran noir, menu, réglages et position enregistrés, données abîmées, aucune slide qui déborde en portrait comme en paysage, écran allumé (verrou et vidéo), fausse barre de chargement, nouvelle version publiée (nouveau cache, ancien supprimé, rechargement seulement si l'écran n'a pas été touché), fonctionnement serveur arrêté. Il faut Google Chrome, trouvé automatiquement (sinon, indiquez son chemin dans `CHROME_PATH`).
+- **Tests dans Chrome** (`tests/e2e/`) : l'app compilée dans Chrome sans interface, sur un écran de téléphone simulé, avec de vrais événements tactiles et clavier. Taps, tap lent, glissements, appui de 3 s et appui abandonné, deux doigts, clavier et écran noir, menu, réglages et position enregistrés, données abîmées, aucune slide qui déborde en portrait comme en paysage, écran allumé (verrou et vidéo), fausse barre de chargement, nouvelle version publiée (nouveau cache, ancien supprimé, réglages et position conservés, rechargement seulement si l'écran n'a pas été touché), téléphone tourné dans les deux sens (app pivotée, gestes et défilement du menu dans l'axe du téléphone), appui long sans clic parasite dans le menu, fonctionnement serveur arrêté. Il faut Google Chrome, trouvé automatiquement (sinon, indiquez son chemin dans `CHROME_PATH`).

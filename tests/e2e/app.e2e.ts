@@ -172,8 +172,29 @@ test('appui de 3 s : menu, sans changer de slide ; appui abandonné à 1,5 s : r
 		await page.touchMove({ x: RIGHT.x + 20, y: RIGHT.y + 15 }); // le doigt bouge un peu
 		await page.waitFor(isMenuOpen, 'menu ouvert par l\'appui de 3 s', 4000);
 		await page.touchEnd();
-		await sleep(200);
+		await sleep(700);
+		assert.equal(await page.evaluate(isMenuOpen), true, 'le doigt qui se relève ne clique pas dans le menu qui vient de s\'ouvrir');
 		assert.equal(await current(page), 0, 'relâcher l\'appui long ne change pas de slide');
+	});
+});
+
+test('appui de 3 s immobile : le doigt qui se relève ne clique pas dans le menu', TEST_TIMEOUT, async () => {
+	await withApp({}, async (page) => {
+		for (const point of [CENTER, RIGHT, { x: SCREEN.width / 2, y: 250 }]) {
+			await page.touchStart(point);
+			await page.waitFor(isMenuOpen, 'menu ouvert', 5000);
+			await sleep(300);
+			await page.touchEnd();
+			await sleep(700);
+			assert.equal(await page.evaluate(isMenuOpen), true, `menu toujours ouvert (${point.x}, ${point.y})`);
+			assert.equal(await current(page), 0);
+			await pressKey(page, 'Escape');
+		}
+		// Passé ce court délai, un vrai tap dans le menu fonctionne.
+		await pressKey(page, 'm');
+		await page.tap({ x: SCREEN.width / 2, y: await page.evaluate<number>(`(() => { const r = document.querySelector('#slide-list button[data-index="1"]').getBoundingClientRect(); return r.top + r.height / 2; })()`) });
+		await expectSlide(page, 1);
+		assert.equal(await page.evaluate(isMenuOpen), false);
 	});
 });
 
@@ -263,6 +284,7 @@ test('menu : aides visuelles et transition, appliquées et enregistrées', TEST_
 		assert.equal(await page.evaluate(`document.querySelector('#hold-ring').hidden`), true);
 		await page.waitFor(isMenuOpen, 'menu ouvert', 4000);
 		await page.touchEnd();
+		await sleep(500); // clics ignorés juste après l'appui long
 		await click(page, '#defaults-btn');
 		assert.equal(await page.evaluate(`document.querySelector('#show-counter').checked`), true);
 	});
@@ -317,6 +339,72 @@ test('chargement : en pause menu ouvert ; relancé depuis 0 en revenant sur la s
 		await pressKey(page, 'ArrowRight');
 		await expectSlide(page, LOADING_INDEX);
 		assert.ok(await percent(page) < 20, 'relancé depuis le début');
+	});
+});
+
+/* ================= Toujours en portrait ================= */
+
+/** Téléphone tourné en paysage : vers la gauche (angle 90) ou vers la droite (angle 270). */
+async function turnPhone(page: Page, angle: 0 | 90 | 270): Promise<void> {
+	const landscape = angle !== 0;
+	await page.send('Emulation.setDeviceMetricsOverride', {
+		width: landscape ? SCREEN.height : SCREEN.width,
+		height: landscape ? SCREEN.width : SCREEN.height,
+		deviceScaleFactor: 3,
+		mobile: true,
+		screenOrientation: { type: angle === 0 ? 'portraitPrimary' : angle === 90 ? 'landscapePrimary' : 'landscapeSecondary', angle },
+	});
+	await page.waitFor(`document.querySelector('#app').dataset.rotation === '${angle === 0 ? 0 : angle === 90 ? -90 : 90}'`, `rotation pour l'angle ${angle}`, 3000);
+}
+
+test('téléphone en paysage : l’app pivote et reste en portrait', TEST_TIMEOUT, async () => {
+	await withApp({}, async (page) => {
+		for (const angle of [90, 270] as const) {
+			await turnPhone(page, angle);
+			assert.deepEqual(await page.evaluate(`[document.querySelector('#stage').clientWidth, document.querySelector('#stage').clientHeight]`), [SCREEN.width, SCREEN.height], `angle ${angle}`);
+			// L'app pivotée couvre exactement l'écran.
+			assert.deepEqual(await page.evaluate(`(() => { const r = document.querySelector('#app').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; })()`), [SCREEN.height, SCREEN.width]);
+			assert.deepEqual(await page.evaluate(OVERFLOWING), []);
+		}
+		await turnPhone(page, 0);
+		assert.equal(await page.evaluate(`document.querySelector('#app').style.transform`), '');
+		assert.deepEqual(await page.evaluate(`[document.querySelector('#stage').clientWidth, document.querySelector('#stage').clientHeight]`), [SCREEN.width, SCREEN.height]);
+	});
+});
+
+test('téléphone en paysage : taps et glissements suivent le téléphone, pas l’écran', TEST_TIMEOUT, async () => {
+	const W = SCREEN.height; // largeur de l'écran en paysage
+	const H = SCREEN.width;
+	await withApp({}, async (page) => {
+		// Vers la gauche (-90°) : la droite de l'app est en haut de l'écran, sa gauche en bas.
+		await turnPhone(page, 90);
+		await page.tap({ x: W / 2, y: 40 });
+		await expectSlide(page, 1);
+		await page.tap({ x: W / 2, y: H - 30 });
+		await expectSlide(page, 0);
+		await swipe(page, { x: W / 2, y: 60 }, { x: W / 2 + 10, y: 300 }); // vers la gauche de l'app
+		await expectSlide(page, 1);
+
+		// Vers la droite (+90°) : la droite de l'app est en bas de l'écran.
+		await turnPhone(page, 270);
+		await page.tap({ x: W / 2, y: H - 40 });
+		await expectSlide(page, 2);
+		await page.tap({ x: W / 2, y: 30 });
+		await expectSlide(page, 1);
+
+		// Appui long : le menu s'ouvre, et sa liste défile dans le sens du téléphone.
+		await page.touchStart({ x: W / 2, y: H / 2 });
+		await page.waitFor(isMenuOpen, 'menu ouvert en paysage', 4000);
+		await page.touchEnd();
+		// Menu plus long que l'écran, comme avec une vraie routine de dizaines de slides.
+		await page.evaluate(`document.querySelector('#menu .sheet').append(Object.assign(document.createElement('div'), { style: 'height: 2000px' }))`);
+		const scrollTop = `document.querySelector('#menu .sheet').scrollTop`;
+		const before = await page.evaluate<number>(scrollTop);
+		// +90° : le haut de l'app est à droite de l'écran ; faire défiler vers le bas = doigt vers le haut de l'app, donc vers la droite.
+		await swipe(page, { x: 80, y: H / 2 }, { x: W - 60, y: H / 2 }, 12, 20);
+		await sleep(400);
+		const after = await page.evaluate<number>(scrollTop);
+		assert.ok(after > before, `le menu a défilé (${before} → ${after}, max ${await page.evaluate(`document.querySelector('#menu .sheet').scrollHeight - document.querySelector('#menu .sheet').clientHeight`)})`);
 	});
 });
 
@@ -439,9 +527,18 @@ async function waitForReload(page: Page, timeoutMs = 15_000): Promise<void> {
 
 const MENU_VERSION = `document.querySelector('#menu-version').textContent`;
 
+/** Réglages différents des valeurs par défaut, pour vérifier qu'une mise à jour les conserve. */
+const CUSTOM_SETTINGS = { transition: 'glisse', showCounter: false, showProgress: true, showNotes: false, showHoldRing: false };
+
+async function expectCustomSettingsKept(page: Page): Promise<void> {
+	assert.deepEqual(await page.evaluate(`JSON.parse(localStorage.getItem('${SETTINGS_KEY}'))`), CUSTOM_SETTINGS, 'réglages enregistrés conservés');
+	assert.equal(await page.evaluate(`document.querySelector('#deck').dataset.transition`), 'glisse', 'réglages appliqués');
+	assert.equal(await page.evaluate(`document.querySelector('#counter').hidden`), true);
+}
+
 test('nouvelle version publiée, écran pas touché : nouveau cache, ancien supprimé, rechargement automatique', TEST_TIMEOUT, async () => {
 	await withSiteCopy(async (dir, site) => {
-		await withApp({}, async (page) => {
+		await withApp({ [SETTINGS_KEY]: JSON.stringify(CUSTOM_SETTINGS), [POSITION_KEY]: '2' }, async (page) => {
 			await page.waitFor(`navigator.serviceWorker.controller`, 'service worker actif', 15_000);
 			const [oldCache, newCache] = publishNewVersion(dir, '9999');
 			assert.deepEqual(await page.evaluate(`caches.keys()`), [oldCache]);
@@ -454,13 +551,15 @@ test('nouvelle version publiée, écran pas touché : nouveau cache, ancien supp
 			await page.waitFor(`${MENU_VERSION} === 'Version 9999'`, 'nouvelle version affichée', 5000, MENU_VERSION);
 			await page.waitFor(`document.querySelector('#about-cache').textContent === ${JSON.stringify(newCache)}`, 'nouveau cache dans le menu', 5000, `document.querySelector('#about-cache').textContent`);
 			assert.deepEqual(await page.evaluate(`caches.keys()`), [newCache], 'seul le nouveau cache reste');
+			await expectCustomSettingsKept(page);
+			assert.equal(await current(page), 2, 'position conservée');
 		}, site.url);
 	});
 });
 
 test('nouvelle version publiée pendant l’utilisation : pas de rechargement, nouvelle version à l’ouverture suivante', TEST_TIMEOUT, async () => {
 	await withSiteCopy(async (dir, site) => {
-		await withApp({}, async (page) => {
+		await withApp({ [SETTINGS_KEY]: JSON.stringify(CUSTOM_SETTINGS) }, async (page) => {
 			await page.waitFor(`navigator.serviceWorker.controller`, 'service worker actif', 15_000);
 			await page.tap(RIGHT); // en pleine routine
 			await expectSlide(page, 1);
@@ -478,6 +577,7 @@ test('nouvelle version publiée pendant l’utilisation : pas de rechargement, n
 			assert.equal(await current(page), 1);
 			await pressKey(page, 'm');
 			await page.waitFor(`${MENU_VERSION} === 'Version 8888'`, 'nouvelle version à l’ouverture suivante', 5000, MENU_VERSION);
+			await expectCustomSettingsKept(page);
 		}, site.url);
 	});
 });

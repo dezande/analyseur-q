@@ -6,9 +6,10 @@
 
 import { GESTURE, GestureTracker } from '../logic/gestures.ts';
 import { keyAction } from '../logic/keys.ts';
-import { closeMenu, isMenuOpen, openMenu } from '../settings/panel.ts';
+import { closeMenu, holdReleased, isMenuOpen, openMenu } from '../settings/panel.ts';
 import { settings } from '../settings/store.ts';
 import { $ } from '../system/dom.ts';
+import { appPoint } from '../system/orientation.ts';
 import { keepScreenAwake } from '../system/wake-lock.ts';
 import { isBlack, move, setBlack } from './deck.ts';
 
@@ -55,11 +56,14 @@ function stopHold(): void {
 
 /* ---------- Toucher ---------- */
 
+// Coordonnées dans le repère de l'app, qui peut être pivotée (system/orientation.ts).
+
 stage.addEventListener('pointerdown', (event) => {
 	if (event.pointerType === 'mouse' && event.button !== 0) return;
 	void keepScreenAwake();
 	touchedSinceShown = true;
-	if (!gestures.press(event.pointerId, event.clientX, event.clientY, performance.now())) {
+	const { x, y } = appPoint(event.clientX, event.clientY);
+	if (!gestures.press(event.pointerId, x, y, performance.now())) {
 		stopHold();
 		return;
 	}
@@ -70,25 +74,29 @@ stage.addEventListener('pointerdown', (event) => {
 	} catch {
 		// Contact déjà terminé.
 	}
-	showRing(event.clientX, event.clientY);
+	showRing(x, y);
 	holdTimer = window.setTimeout(() => {
 		stopHold();
-		if (gestures.holdCompleted(id)) openMenu();
+		if (gestures.holdCompleted(id)) openMenu(true);
 	}, GESTURE.holdMs);
 });
 
 stage.addEventListener('pointermove', (event) => {
-	if (gestures.move(event.pointerId, event.clientX, event.clientY)) stopHold();
+	const { x, y } = appPoint(event.clientX, event.clientY);
+	if (gestures.move(event.pointerId, x, y)) stopHold();
 });
 
 stage.addEventListener('pointerup', (event) => {
 	stopHold();
-	const tap = gestures.release(event.pointerId, event.clientX, event.clientY, performance.now(), stage.clientWidth);
+	holdReleased();
+	const { x, y } = appPoint(event.clientX, event.clientY);
+	const tap = gestures.release(event.pointerId, x, y, performance.now(), stage.clientWidth);
 	if (tap !== 'none') move(tap);
 });
 
 stage.addEventListener('pointercancel', (event) => {
 	stopHold();
+	holdReleased();
 	gestures.cancel(event.pointerId);
 });
 
