@@ -40,8 +40,12 @@ export const SLIDES: readonly Slide[] = [
 	{
 		titre: 'Analyse en cours',
 		chargement: 6,
-		termine: 'Analyse quantique terminée',
-		note: 'La barre démarre à l\'arrivée sur la slide ; à 100 %, le message s\'affiche et la slide reste.',
+		note: 'La barre démarre à l\'arrivée sur la slide ; à 100 %, passe seule à la slide suivante.',
+	},
+	{
+		titre: 'Analyse quantique terminée',
+		bouton: 'Voir les résultats',
+		note: 'Appuyer sur le bouton pour afficher les résultats.',
 	},
 	{
 		grand: '52',
