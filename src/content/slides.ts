@@ -48,9 +48,8 @@ export const SLIDES: readonly Slide[] = [
 		note: 'Appuyer sur le bouton pour afficher les résultats.',
 	},
 	{
-		grand: '52',
-		texte: 'Un mot ou un nombre en très grand',
-		note: 'Appui de 3 s n\'importe où : menu (aller à une slide, réglages).',
+		grand: '24',
+		texte: 'cartes face en bas',
 	},
 	{
 		texte: 'Une slide avec seulement du texte, plus long, pour vérifier que la taille des caractères s\'adapte à l\'écran. '
