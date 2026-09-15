@@ -33,6 +33,9 @@ $duration: .45s;
 	overflow: hidden;
 	opacity: 0;
 	visibility: hidden;
+	// Pendant le fondu, la slide qui s'en va est encore par-dessus : elle ne doit pas recevoir les
+	// touchers destinés à la nouvelle (son bouton intercepterait l'appui).
+	pointer-events: none;
 	transition: opacity $duration ease, transform $duration ease, visibility 0s linear $duration;
 
 	// Hors de la fenêtre d'affichage (stage/deck.ts) : pas rendue du tout.
@@ -43,6 +46,7 @@ $duration: .45s;
 	&.current {
 		opacity: 1;
 		visibility: visible;
+		pointer-events: auto;
 		transform: none;
 		transition-delay: 0s;
 	}

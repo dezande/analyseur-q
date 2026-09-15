@@ -13,22 +13,15 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { Browser, SCREEN, type Page, type Point } from '../../src/kit/node/chrome.ts';
 import { startStaticServer, type StaticServer } from '../../src/kit/node/static-server.ts';
 import { SLIDES } from '../../src/content/slides.ts';
+import {
+	CENTER, click, current, doneMessage, expectSlide, isBlack, isMenuOpen, LEFT, LEGACY_POSITION_KEY, LEGACY_SETTINGS_KEY, openApp,
+	OVERFLOWING, percent, POSITION_KEY, pressKey, RIGHT, SETTINGS_KEY, swipe, TEST_TIMEOUT, text, turnPhone,
+} from './helpers.ts';
 
-/** Clés d'enregistrement (src/settings/store.ts). */
-const SETTINGS_KEY = 'analyseur-q:settings:v1';
-const POSITION_KEY = 'analyseur-q:position:v1';
-/** Clés d'avant le renommage du projet (rain-man). */
-const LEGACY_SETTINGS_KEY = 'rain-man:settings:v1';
-const LEGACY_POSITION_KEY = 'rain-man:position:v1';
-const TEST_TIMEOUT = { timeout: 60_000 };
 const COUNT = SLIDES.length;
 
 /** Première slide simple (ni bouton ni chargement) suivie d'une autre slide simple : pour tester la navigation. */
 const PLAIN = SLIDES.findIndex((slide, i) => i + 1 < COUNT && [slide, SLIDES[i + 1]].every((s) => !s.bouton && s.chargement === undefined));
-
-const RIGHT: Point = { x: SCREEN.width - 80, y: SCREEN.height / 2 };
-const LEFT: Point = { x: 50, y: SCREEN.height / 2 };
-const CENTER: Point = { x: SCREEN.width / 2, y: SCREEN.height / 2 };
 
 let server: StaticServer;
 let browser: Browser;
@@ -48,52 +41,9 @@ after(async () => {
 
 /* ================= Outils ================= */
 
-/**
- * Ouvre l'app dans un nouvel onglet avec `storage` déjà enregistré (clé → valeur brute),
- * lance `run`, puis vérifie qu'aucune erreur JavaScript n'a eu lieu.
- */
-async function withApp(storage: Record<string, string>, run: (page: Page) => Promise<void>, url = server.url): Promise<void> {
-	const page = await browser.newPage();
-	try {
-		await page.goto(url);
-		const setup = Object.entries(storage).map(([key, value]) => `localStorage.setItem(${JSON.stringify(key)}, ${JSON.stringify(value)});`).join('');
-		await page.evaluate(`localStorage.clear(); ${setup}`);
-		await page.reload();
-		await page.waitFor(`document.querySelectorAll('#deck .slide').length === ${COUNT}`, 'slides construites');
-		await run(page);
-		assert.deepEqual(page.errors, [], 'erreurs JavaScript dans la page');
-	} finally {
-		await page.close();
-	}
-}
-
-/** Index de la slide affichée. */
-const current = (page: Page): Promise<number> => page.evaluate(`Number(document.querySelector('.slide.current')?.dataset.index)`);
-
-async function expectSlide(page: Page, index: number): Promise<void> {
-	await page.waitFor(`document.querySelector('.slide.current')?.dataset.index === '${index}'`, `slide ${index + 1} affichée`, 3000, `document.querySelector('.slide.current')?.dataset.index`);
-}
-
-const isMenuOpen = `!document.querySelector('#menu').hidden`;
-const isBlack = `!document.querySelector('#black').hidden`;
-
-const click = (page: Page, selector: string): Promise<unknown> => page.evaluate(`document.querySelector('${selector}').click()`);
-const text = (page: Page, selector: string): Promise<string> => page.evaluate(`document.querySelector('${selector}').textContent`);
-
-/** Glissement d'un doigt de `from` à `to`, en `steps` étapes espacées de `stepMs`. */
-async function swipe(page: Page, from: Point, to: Point, steps = 6, stepMs = 25): Promise<void> {
-	await page.touchStart(from);
-	for (let i = 1; i <= steps; i++) {
-		await sleep(stepMs);
-		await page.touchMove({ x: from.x + ((to.x - from.x) * i) / steps, y: from.y + ((to.y - from.y) * i) / steps });
-	}
-	await page.touchEnd();
-}
-
-async function pressKey(page: Page, key: string): Promise<void> {
-	await page.send('Input.dispatchKeyEvent', { type: 'keyDown', key });
-	await page.send('Input.dispatchKeyEvent', { type: 'keyUp', key });
-}
+/** Ouvre le vrai diaporama (content/slides.ts) ; voir openApp. */
+const withApp = (storage: Record<string, string>, run: (page: Page) => Promise<void>, url = server.url): Promise<void> =>
+	openApp(browser, url, COUNT, storage, run);
 
 /* ================= Démarrage ================= */
 
@@ -264,6 +214,16 @@ test('menu : aller à une slide, recommencer', TEST_TIMEOUT, async () => {
 		assert.equal(await text(page, '#menu-position'), `3 / ${COUNT}`);
 		assert.match(await text(page, '#menu-version'), /^Version \S+$/);
 		assert.doesNotMatch(await text(page, '#menu-version'), /__APP_VERSION__/);
+		// Informations du bas du menu : toutes remplies.
+		assert.match(await text(page, '#about-version'), /^\S+ \(.+\)$/, 'version et commit');
+		await page.waitFor(`document.querySelector('#about-storage').textContent !== ''`, 'état du stockage affiché');
+		assert.match(await text(page, '#about-storage'), /^(persistant|non garanti|inconnu)$/);
+		assert.match(await text(page, '#about-cache'), /^(inactif|analyseur-q-\S+)$/);
+		assert.equal(await text(page, '#about-display'), 'navigateur');
+		assert.match(await text(page, '#wake-text'), /^Écran : verrou (actif|inactif)$/);
+		await click(page, '#close-btn');
+		assert.equal(await page.evaluate(isMenuOpen), false, 'bouton Fermer');
+		await pressKey(page, 'm');
 		await click(page, '#restart-btn');
 		await expectSlide(page, 0);
 	});
@@ -330,10 +290,6 @@ const LOADING_MS = (SLIDES[LOADING_INDEX]?.chargement ?? 0) * 1000;
 const LOADING_TEST = { timeout: 60_000 + LOADING_MS * 3, skip: LOADING_INDEX < 0 && 'aucune slide avec chargement' };
 /** Slide de LOADING_INDEX : message à 100 % (la slide reste) ou passage automatique à la suivante. */
 const LOADING_MESSAGE = SLIDES[LOADING_INDEX]?.termine;
-
-const percent = (page: Page): Promise<number> =>
-	page.evaluate(`parseInt(document.querySelector('.slide.current .chargement-pourcent')?.textContent ?? '-1')`);
-const doneMessage = `(() => { const m = document.querySelector('.slide.current .chargement-termine'); return m && !m.hidden ? m.textContent : null; })()`;
 
 test('chargement : la barre avance, puis à 100 % le message s’affiche (ou la slide suivante)', LOADING_TEST, async () => {
 	await withApp({ [POSITION_KEY]: String(LOADING_INDEX) }, async (page) => {
@@ -413,19 +369,6 @@ test('bouton : tap juste à côté du bouton (doigt imprécis) compte comme un a
 
 /* ================= Toujours en portrait ================= */
 
-/** Téléphone tourné en paysage : vers la gauche (angle 90) ou vers la droite (angle 270). */
-async function turnPhone(page: Page, angle: 0 | 90 | 270): Promise<void> {
-	const landscape = angle !== 0;
-	await page.send('Emulation.setDeviceMetricsOverride', {
-		width: landscape ? SCREEN.height : SCREEN.width,
-		height: landscape ? SCREEN.width : SCREEN.height,
-		deviceScaleFactor: 3,
-		mobile: true,
-		screenOrientation: { type: angle === 0 ? 'portraitPrimary' : angle === 90 ? 'landscapePrimary' : 'landscapeSecondary', angle },
-	});
-	await page.waitFor(`document.querySelector('#app').dataset.rotation === '${angle === 0 ? 0 : angle === 90 ? -90 : 90}'`, `rotation pour l'angle ${angle}`, 3000);
-}
-
 test('téléphone en paysage : l’app pivote et reste en portrait', TEST_TIMEOUT, async () => {
 	await withApp({}, async (page) => {
 		for (const angle of [90, 270] as const) {
@@ -478,14 +421,6 @@ test('téléphone en paysage : taps et glissements suivent le téléphone, pas l
 });
 
 /* ================= Mise en page ================= */
-
-/** Slides rendues dont le contenu sort de l'écran, avec leur échelle de texte. */
-const OVERFLOWING = `[...document.querySelectorAll('.slide:not(.far)')].filter((slide) => {
-	const body = slide.firstElementChild;
-	const style = getComputedStyle(slide);
-	const height = slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-	return body.scrollHeight > height + 1 || body.scrollWidth > body.clientWidth + 1;
-}).map((slide) => ({ slide: Number(slide.dataset.index) + 1, fit: slide.style.getPropertyValue('--fit') }))`;
 
 test('aucune slide ne sort de l’écran, en portrait comme en paysage', TEST_TIMEOUT, async () => {
 	await withApp({}, async (page) => {
@@ -680,6 +615,13 @@ test('hors-ligne : une fois ouverte, l’app redémarre serveur arrêté', TEST_
 			await page.waitFor(`document.querySelectorAll('#deck .slide').length === ${COUNT}`, 'app rechargée hors-ligne', 10_000);
 			await page.tap(RIGHT);
 			await expectSlide(page, 1);
+			// Chaque image du diaporama s'affiche sans réseau.
+			for (const [i, slide] of SLIDES.entries()) {
+				if (!slide.image) continue;
+				await click(page, `#slide-list button[data-index="${i}"]`);
+				await expectSlide(page, i);
+				await page.waitFor(`(() => { const img = document.querySelector('.slide.current .image'); return img.complete && img.naturalWidth > 0; })()`, `image de la slide ${i + 1} (${slide.image}) affichée hors-ligne`, 5000);
+			}
 		}, offlineServer.url);
 	} finally {
 		if (!closed) await offlineServer.close();
