@@ -110,7 +110,7 @@ npm run deploy -- --dry-run # vérifications, build et tests seulement, sans pus
 
 ## Journal des versions
 
-Chaque changement se note dans le [journal des versions](CHANGELOG.md), sous « À venir », dans le commit qui le porte : la CI refuse un push qui touche au projet sans toucher à ce fichier, et rien n'est publié. Les versions nommées (tags git `vX.Y.Z` et Releases GitHub) y sont décrites une par une.
+Chaque changement se note dans le [journal des versions](CHANGELOG.md), sous « Non publié », dans le commit qui le porte : la vérification du kit (`npm run check:changelog`) contrôle la forme du journal et refuse un changement qui ne s'explique pas, en pull request comme sur `main`. Les versions nommées (tags git `vX.Y.Z` et Releases GitHub) y sont décrites une par une.
 
 ## Développement
 

@@ -16,8 +16,8 @@
 		"clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
 		"build": "npm run clean && node -e \"require('node:fs').cpSync('public', 'dist', { recursive: true })\" && sass --no-source-map src/styles/main.scss dist/style.css && tsc -p src && tsc -p src/sw && node src/kit/node/check-dist.ts && node src/kit/node/stamp-build.ts",
 		"typecheck": "tsc -p src --noEmit && tsc -p src/sw --noEmit && tsc",
-		"test": "node --test \"tests/logic/**/*.test.ts\" \"tests/tools/**/*.test.ts\"",
-		"check:changelog": "node scripts/check-changelog.ts",
+		"test": "node --test \"tests/logic/**/*.test.ts\"",
+		"check:changelog": "node src/kit/node/check-changelog.ts",
 		"test:e2e": "node --test --test-concurrency=1 \"tests/e2e/**/*.e2e.ts\"",
 		"serve": "npm run build && node src/kit/node/serve.ts",
 		"deploy": "node src/kit/node/deploy.ts"
