@@ -230,6 +230,9 @@ strong {
 // pour un doigt imprécis.
 .bouton {
 	position: relative;
+	// Jamais plus large que la slide : sur un appareil aux polices plus larges, le texte passe
+	// à la ligne dans le bouton au lieu de déborder.
+	max-width: 100%;
 	min-height: max(56px, calc(var(--fit) * 72px));
 	padding: calc(var(--fit) * .6em) calc(var(--fit) * 1.6em);
 	border: 2px solid $accent;
@@ -242,6 +245,7 @@ strong {
 	touch-action: manipulation;
 	box-shadow: 0 0 calc(var(--fit) * 28px) rgba(247, 147, 30, .25);
 	// Apparition pendant le délai d'activation (stage/deck.ts), puis pulsation.
+	// Fondu seulement : une mise à l'échelle fausserait la mesure de l'ajustement du texte.
 	animation: bouton-apparition .7s ease-out both, bouton-pulse 2.4s ease-in-out .7s infinite;
 
 	// Zone de toucher agrandie de 24 px tout autour.
@@ -260,7 +264,6 @@ strong {
 @keyframes bouton-apparition {
 	from {
 		opacity: 0;
-		transform: scale(.94);
 	}
 }
 
