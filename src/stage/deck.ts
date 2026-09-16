@@ -1,7 +1,6 @@
 /*
  * Le diaporama affiché : construction des slides, passage de l'une à l'autre,
- * ajustement du texte à l'écran, fausse barre de chargement, compteur, barre de progression,
- * note et écran noir.
+ * ajustement du texte à l'écran, fausse barre de chargement, note et écran noir.
  */
 
 import { SLIDES } from '../content/slides.ts';
@@ -15,8 +14,6 @@ import { isPointerDown } from './input.ts';
 import { startLoading, stopLoading } from './loading.ts';
 
 const deckEl = $('#deck');
-const counterEl = $('#counter');
-const progressEl = $('#progress-bar');
 const noteEl = $('#note');
 const blackEl = $('#black');
 
@@ -287,8 +284,6 @@ function render(): void {
 	}
 	rendered = next;
 	for (const i of next) ensureFit(slideEls[i]);
-	counterEl.textContent = counterLabel(index, slideCount);
-	progressEl.style.transform = `scaleX(${slideCount > 1 ? index / (slideCount - 1) : 1})`;
 	const note = SLIDES[index]?.note ?? '';
 	noteEl.textContent = note;
 	noteEl.hidden = !settings.showNotes || !note;
@@ -332,8 +327,6 @@ export function setBlack(on: boolean): void {
 /** Applique les réglages en cours : transition et aides visuelles. */
 export function applyDisplaySettings(): void {
 	deckEl.dataset.transition = settings.transition;
-	counterEl.hidden = !settings.showCounter;
-	$('#progress').hidden = !settings.showProgress;
 	render();
 }
 

@@ -108,9 +108,13 @@ npm run deploy              # vérifie en local, pousse, suit GitHub Actions et 
 npm run deploy -- --dry-run # vérifications, build et tests seulement, sans push
 ```
 
+## Journal des versions
+
+Chaque changement se note dans le [journal des versions](CHANGELOG.md), sous « À venir », dans le commit qui le porte : la CI refuse un push qui touche au projet sans toucher à ce fichier, et rien n'est publié. Les versions nommées (tags git `vX.Y.Z` et Releases GitHub) y sont décrites une par une.
+
 ## Développement
 
-Il faut Node 24 ou plus récent. TypeScript et Sass servent uniquement au build : l'app publiée n'a aucune dépendance.
+Il faut Node 24 (version figée dans `.nvmrc` : `nvm use`). TypeScript et Sass servent uniquement au build : l'app publiée n'a aucune dépendance.
 
 Le code commun aux accessoires de scène (écran allumé, portrait, hors-ligne et mises à jour, build, déploiement, pilotage de Chrome) vient du kit **[kit-scene](https://github.com/dezande/kit-scene)**, sous-module git monté dans `src/kit/`. L'app utilise une version précise du kit ; pour prendre la dernière, voir le README du kit.
 
@@ -121,6 +125,7 @@ npm run serve       # build puis serveur local sur http://localhost:8000
 npm test            # tests unitaires (quelques secondes)
 npm run test:e2e    # tests dans Chrome de l'app compilée (environ 30 s, après npm run build)
 npm run typecheck   # vérification des types
+npm run check:changelog # le journal des versions a-t-il été mis à jour ?
 npm run build       # génère dist/
 ```
 

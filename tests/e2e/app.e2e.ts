@@ -50,7 +50,6 @@ const withApp = (storage: Record<string, string>, run: (page: Page) => Promise<v
 test('démarrage : toutes les slides, la première affichée, sans erreur JavaScript', TEST_TIMEOUT, async () => {
 	await withApp({}, async (page) => {
 		assert.equal(await current(page), 0);
-		assert.equal(await text(page, '#counter'), `1 / ${COUNT}`);
 		assert.equal(await page.evaluate(isMenuOpen), false);
 		assert.equal(await page.evaluate(`document.querySelectorAll('#slide-list button').length`), COUNT);
 	});
@@ -240,22 +239,20 @@ test('menu : aller à une slide, recommencer', TEST_TIMEOUT, async () => {
 test('menu : aides visuelles et transition, appliquées et enregistrées', TEST_TIMEOUT, async () => {
 	await withApp({}, async (page) => {
 		await pressKey(page, 'm');
-		for (const id of ['show-counter', 'show-progress', 'show-notes', 'show-hold-ring']) {
+		for (const id of ['show-notes', 'show-hold-ring']) {
 			await click(page, `#${id}`);
 		}
 		await click(page, '[data-transition="glisse"]');
 		await click(page, '#close-btn');
-		assert.equal(await page.evaluate(`document.querySelector('#counter').hidden`), true);
-		assert.equal(await page.evaluate(`document.querySelector('#progress').hidden`), true);
 		assert.equal(await page.evaluate(`document.querySelector('#note').hidden`), true);
 		assert.equal(await page.evaluate(`document.querySelector('#deck').dataset.transition`), 'glisse');
 
 		await page.reload();
 		await page.waitFor(`document.querySelector('.slide.current')`, 'redémarrage');
 		assert.deepEqual(await page.evaluate(`JSON.parse(localStorage.getItem('${SETTINGS_KEY}'))`), {
-			transition: 'glisse', showCounter: false, showProgress: false, showNotes: false, showHoldRing: false,
+			transition: 'glisse', showNotes: false, showHoldRing: false,
 		});
-		assert.equal(await page.evaluate(`document.querySelector('#counter').hidden`), true);
+		assert.equal(await page.evaluate(`document.querySelector('#note').hidden`), true);
 
 		// Jauge masquée : l'appui long ouvre quand même le menu.
 		await page.touchStart(CENTER);
@@ -265,12 +262,12 @@ test('menu : aides visuelles et transition, appliquées et enregistrées', TEST_
 		await page.touchEnd();
 		await sleep(500); // clics ignorés juste après l'appui long
 		await click(page, '#defaults-btn');
-		assert.equal(await page.evaluate(`document.querySelector('#show-counter').checked`), true);
+		assert.equal(await page.evaluate(`document.querySelector('#show-notes').checked`), true);
 	});
 });
 
 test('ancien nom du projet : réglages et position de rain-man repris', TEST_TIMEOUT, async () => {
-	const legacy = { transition: 'aucune', showCounter: false, showProgress: false, showNotes: true, showHoldRing: true };
+	const legacy = { transition: 'aucune', showNotes: true, showHoldRing: true };
 	await withApp({ [LEGACY_SETTINGS_KEY]: JSON.stringify(legacy), [LEGACY_POSITION_KEY]: '2' }, async (page) => {
 		assert.equal(await current(page), 2);
 		assert.equal(await page.evaluate(`document.querySelector('#deck').dataset.transition`), 'aucune');
@@ -285,7 +282,7 @@ test('réglages abîmés : l’app démarre avec les réglages par défaut', TES
 	for (const raw of ['{pas du JSON', '"texte"', JSON.stringify({ transition: 'zoom', showNotes: 'oui' })]) {
 		await withApp({ [SETTINGS_KEY]: raw }, async (page) => {
 			assert.equal(await page.evaluate(`document.querySelector('#deck').dataset.transition`), 'fondu');
-			assert.equal(await page.evaluate(`document.querySelector('#counter').hidden`), false);
+			assert.equal(await page.evaluate(`document.querySelector('#note').hidden`), false);
 		});
 	}
 });
@@ -556,12 +553,12 @@ async function waitForReload(page: Page, timeoutMs = 15_000): Promise<void> {
 const MENU_VERSION = `document.querySelector('#menu-version').textContent`;
 
 /** Réglages différents des valeurs par défaut, pour vérifier qu'une mise à jour les conserve. */
-const CUSTOM_SETTINGS = { transition: 'glisse', showCounter: false, showProgress: true, showNotes: false, showHoldRing: false };
+const CUSTOM_SETTINGS = { transition: 'glisse', showNotes: false, showHoldRing: false };
 
 async function expectCustomSettingsKept(page: Page): Promise<void> {
 	assert.deepEqual(await page.evaluate(`JSON.parse(localStorage.getItem('${SETTINGS_KEY}'))`), CUSTOM_SETTINGS, 'réglages enregistrés conservés');
 	assert.equal(await page.evaluate(`document.querySelector('#deck').dataset.transition`), 'glisse', 'réglages appliqués');
-	assert.equal(await page.evaluate(`document.querySelector('#counter').hidden`), true);
+	assert.equal(await page.evaluate(`document.querySelector('#note').hidden`), true);
 }
 
 test('nouvelle version publiée, écran pas touché : nouveau cache, ancien supprimé, rechargement automatique', TEST_TIMEOUT, async () => {

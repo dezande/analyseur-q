@@ -81,39 +81,11 @@
 }
 
 // Aides posées sur la scène : elles laissent passer les touchers.
-#counter,
-#progress,
 #note,
 #hold-ring,
 #black {
 	position: fixed;
 	pointer-events: none;
-}
-
-#counter {
-	z-index: 10;
-	top: calc(var(--safe-t) + 22px);
-	right: calc(var(--safe-r) + 26px);
-	font: 500 13px/1 $sans;
-	font-variant-numeric: tabular-nums;
-	letter-spacing: .04em;
-	color: $ink-soft;
-}
-
-#progress {
-	z-index: 10;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	height: 3px;
-	background: $ink-faint;
-}
-
-#progress-bar {
-	height: 100%;
-	background: $accent;
-	transform-origin: left center;
-	transition: transform .35s ease;
 }
 
 // Note pour l'artiste, en bas de l'écran.

@@ -82,21 +82,18 @@ const buttonCenter = (page: Page): Promise<Point> =>
 
 /* ================= Aides à l'écran ================= */
 
-test('notes, compteur et barre de progression suivent la slide ; notes masquables', TEST_TIMEOUT, async () => {
-	const progress = `document.querySelector('#progress-bar').style.transform`;
+test('notes : affichées slide par slide, masquables ; rien d’autre sur l’écran', TEST_TIMEOUT, async () => {
 	await withFixture({}, async (page) => {
-		assert.equal(await text(page, '#counter'), `1 / ${COUNT}`);
-		assert.equal(await page.evaluate(progress), 'scaleX(0)');
 		assert.equal(await page.evaluate(`document.querySelector('#note').hidden`), false);
 		assert.equal(await text(page, '#note'), 'Note de la première slide');
+		// Numéro de slide et barre de progression retirés de l'app.
+		assert.deepEqual(await page.evaluate(`[document.querySelector('#counter'), document.querySelector('#progress')]`), [null, null]);
 
 		await jumpTo(page, 1);
 		assert.equal(await page.evaluate(`document.querySelector('#note').hidden`), true, 'slide sans note : note cachée');
-		assert.equal(await text(page, '#counter'), `2 / ${COUNT}`);
 
 		await jumpTo(page, COUNT - 1);
-		assert.equal(await page.evaluate(progress), 'scaleX(1)');
-		assert.equal(await text(page, '#counter'), `${COUNT} / ${COUNT}`);
+		assert.equal(await page.evaluate(`document.querySelector('#note').hidden`), true);
 	});
 	await withFixture({ [SETTINGS_KEY]: JSON.stringify({ showNotes: false }) }, async (page) => {
 		assert.equal(await page.evaluate(`document.querySelector('#note').hidden`), true, 'notes masquées dans le menu');

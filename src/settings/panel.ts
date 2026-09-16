@@ -18,10 +18,8 @@ import { settings, storeSettings } from './store.ts';
 const menu = $('#menu');
 const list = $('#slide-list');
 
-type Toggle = 'showCounter' | 'showProgress' | 'showNotes' | 'showHoldRing';
+type Toggle = 'showNotes' | 'showHoldRing';
 const TOGGLES: Record<Toggle, string> = {
-	showCounter: '#show-counter',
-	showProgress: '#show-progress',
 	showNotes: '#show-notes',
 	showHoldRing: '#show-hold-ring',
 };

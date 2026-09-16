@@ -12,16 +12,12 @@ export interface Settings {
 	/** Passage d'une slide à l'autre. */
 	transition: Transition;
 	/** Aides visuelles, à masquer avant de jouer si le public voit l'écran. */
-	showCounter: boolean;
-	showProgress: boolean;
 	showNotes: boolean;
 	showHoldRing: boolean;
 }
 
 export const DEFAULTS: Readonly<Settings> = Object.freeze({
 	transition: 'fondu',
-	showCounter: true,
-	showProgress: true,
 	showNotes: true,
 	showHoldRing: true,
 });
@@ -34,8 +30,6 @@ export function sanitizeSettings(raw: unknown): Settings {
 	const src: Partial<Record<keyof Settings, unknown>> = raw && typeof raw === 'object' ? raw : {};
 	return {
 		transition: isTransition(src.transition) ? src.transition : DEFAULTS.transition,
-		showCounter: bool(src.showCounter, DEFAULTS.showCounter),
-		showProgress: bool(src.showProgress, DEFAULTS.showProgress),
 		showNotes: bool(src.showNotes, DEFAULTS.showNotes),
 		showHoldRing: bool(src.showHoldRing, DEFAULTS.showHoldRing),
 	};
