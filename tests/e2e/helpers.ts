@@ -97,7 +97,18 @@ export const OVERFLOWING = `[...document.querySelectorAll('.slide:not(.far)')].f
 	const style = getComputedStyle(slide);
 	const height = slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
 	return body.scrollHeight > height + 1 || body.scrollWidth > body.clientWidth + 1;
-}).map((slide) => ({ slide: Number(slide.dataset.index) + 1, fit: slide.style.getPropertyValue('--fit') }))`;
+}).map((slide) => {
+	const body = slide.firstElementChild;
+	const style = getComputedStyle(slide);
+	return {
+		slide: Number(slide.dataset.index) + 1,
+		fit: slide.style.getPropertyValue('--fit'),
+		contenu: body.scrollHeight,
+		place: Math.round(slide.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)),
+		largeur: [body.scrollWidth, body.clientWidth],
+		classes: slide.className,
+	};
+})`;
 
 /** Pourcentage affiché par la barre de chargement de la slide courante (-1 sans barre). */
 export const percent = (page: Page): Promise<number> =>
