@@ -10,7 +10,7 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 | Version | Commits | Date | En une phrase |
 | --- | --- | --- | --- |
-| [1.2.0](#120) | 25 | 2026-09-16 | Numéro de slide et barre retirés, journal des versions et règles de branche |
+| [1.2.0](#120) | 26 | 2026-09-16 | Numéro de slide et barre retirés, journal des versions et règles de branche |
 | [1.1.1](#111) | 22 | 2026-09-16 | Corrections d'affichage : texte et bouton qui ne débordent plus |
 | [1.1.0](#110) | 19 | 2026-09-16 | Bouton « Recommencer » et délai d'activation |
 | [1.0.0](#100) | 17 | 2026-09-15 | Prête pour la scène : tous les cas testés |
@@ -32,7 +32,7 @@ Rien pour l'instant : le prochain changement s'écrit ici.
 
 ## 1.2.0
 
-**2026-09-16** — commits [`eb78c69`](https://github.com/dezande/analyseur-q/commit/eb78c69), [`be0423e`](https://github.com/dezande/analyseur-q/commit/be0423e), [`8d9633d`](https://github.com/dezande/analyseur-q/commit/8d9633d) — 25 commits
+**2026-09-16** — commits [`eb78c69`](https://github.com/dezande/analyseur-q/commit/eb78c69), [`be0423e`](https://github.com/dezande/analyseur-q/commit/be0423e), [`8d9633d`](https://github.com/dezande/analyseur-q/commit/8d9633d) — 26 commits
 
 L'écran ne montre plus que la slide, et le projet se dote d'un journal des versions et de règles de branche.
 
