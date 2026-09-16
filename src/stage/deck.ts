@@ -133,6 +133,11 @@ let rendered: number[] = [];
 
 /** Plus petite échelle du texte : en dessous, mieux vaut raccourcir la slide. */
 const MIN_FIT = 0.25;
+/**
+ * Marge de sécurité de l'ajustement, en pixels : une slide « tout juste » déborderait au moindre
+ * écart de police ou d'arrondi (les polices système diffèrent d'un appareil à l'autre).
+ */
+const FIT_MARGIN_PX = 4;
 
 /**
  * Plus grande échelle (--fit, entre MIN_FIT et 1) à laquelle le contenu tient dans la slide,
@@ -144,7 +149,7 @@ function fit(section: HTMLElement): void {
 	const height = section.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
 	const fits = (scale: number): boolean => {
 		section.style.setProperty('--fit', String(scale));
-		return body.scrollHeight <= height + 1 && body.scrollWidth <= body.clientWidth + 1;
+		return body.scrollHeight <= height - FIT_MARGIN_PX && body.scrollWidth <= body.clientWidth;
 	};
 	if (fits(1)) return;
 	let lo = MIN_FIT;
