@@ -12,7 +12,7 @@ import { Browser, SCREEN, type Page, type Point } from '../../src/kit/node/chrom
 import { startStaticServer, type StaticServer } from '../../src/kit/node/static-server.ts';
 import { checkSlides, type Slide } from '../../src/logic/slides.ts';
 import {
-	current, doneMessage, expectSlide, isBlack, isMenuOpen, jumpTo, LEFT, mouseClick, openApp, OVERFLOWING, percent,
+	CENTER, current, doneMessage, expectSlide, isBlack, isMenuOpen, jumpTo, LEFT, mouseClick, openApp, OVERFLOWING, percent,
 	POSITION_KEY, pressKey, RIGHT, SETTINGS_KEY, swipe, TEST_TIMEOUT, text, turnPhone,
 } from './helpers.ts';
 
@@ -42,6 +42,9 @@ const MESSAGE = 5;
 const LABEL_BIG = 6;
 const LABEL_IMAGE = 7;
 const LONG_TEXT = 8;
+
+/** Délai avant qu'un bouton devienne actif en arrivant sur sa slide (stage/deck.ts), avec une marge. */
+const BUTTON_DELAY_MS = 900;
 
 /** Point à droite de l'écran, loin des boutons des slides. */
 const FAR_RIGHT: Point = { x: SCREEN.width - 20, y: SCREEN.height - 140 };
@@ -144,6 +147,7 @@ test('bouton et chargement : tap à droite, glissement et télécommande lancent
 			['télécommande', () => pressKey(page, 'PageDown')],
 		];
 		for (const [label, launch] of launchers) {
+			await sleep(BUTTON_DELAY_MS);
 			assert.deepEqual(await actions(page), { button: true, bar: false }, `${label} : bouton remis`);
 			await launch();
 			await page.waitFor(`${ACTIONS}.bar && !${ACTIONS}.button`, `${label} : barre lancée`, 2000, ACTIONS);
@@ -158,19 +162,47 @@ test('bouton et chargement : tap à droite, glissement et télécommande lancent
 	});
 });
 
-test('bouton : appui juste après l’arrivée sur la slide, pendant le fondu, même si la slide précédente avait un bouton au même endroit', TEST_TIMEOUT, async () => {
+test('bouton : délai d’activation à l’arrivée sur la slide, et la slide qui s’en va ne reçoit plus les touchers', TEST_TIMEOUT, async () => {
 	await withFixture({ [POSITION_KEY]: String(BUTTON_LOADING) }, async (page) => {
-		await sleep(600);
+		await sleep(BUTTON_DELAY_MS);
 		const center = await buttonCenter(page);
 		await jumpTo(page, BUTTON_ONLY);
-		await page.tap(center); // aussitôt : la slide précédente est encore en train de disparaître
+
+		// Pendant le fondu, seule la nouvelle slide reçoit les touchers (sinon le bouton de l'ancienne,
+		// au même endroit, prendrait l'appui).
+		await sleep(150);
+		assert.equal(await page.evaluate(`document.elementFromPoint(${center.x}, ${center.y}).closest('.slide')?.dataset.index`), String(BUTTON_ONLY));
+
+		// Appui tout de suite : ignoré, la slide reste affichée.
+		await page.tap(center);
+		await page.tap(FAR_RIGHT);
+		await sleep(300);
+		assert.equal(await current(page), BUTTON_ONLY, 'bouton pas encore actif : la slide reste');
+
+		// Passé le délai, l'appui fonctionne.
+		await sleep(BUTTON_DELAY_MS);
+		await page.tap(center);
 		await expectSlide(page, BUTTON_ONLY + 1);
 		assert.deepEqual(await actions(page), { button: true, bar: false }, 'arrivée sur la slide bouton et chargement, bouton remis');
 	});
 });
 
+test('bouton : un doigt posé sur l’écran bloque l’activation', TEST_TIMEOUT, async () => {
+	await withFixture({ [POSITION_KEY]: String(BUTTON_LOADING) }, async (page) => {
+		await sleep(BUTTON_DELAY_MS);
+		await page.touchStart(CENTER);
+		await pressKey(page, 'PageDown');
+		await sleep(300);
+		assert.deepEqual(await actions(page), { button: true, bar: false }, 'rien tant que le doigt est posé');
+		await page.touchEnd();
+		await pressKey(page, 'PageDown');
+		await page.waitFor(`${ACTIONS}.bar`, 'barre lancée une fois le doigt relevé', 2000, ACTIONS);
+	});
+});
+
 test('bouton Recommencer (boutonVers) : l’appui revient à la première slide ; tap à droite, glissement et télécommande ne recommencent pas', TEST_TIMEOUT, async () => {
 	await withFixture({ [POSITION_KEY]: String(COUNT - 1) }, async (page) => {
+		await sleep(BUTTON_DELAY_MS);
 		await page.tap(FAR_RIGHT);
 		await swipe(page, { x: 330, y: 760 }, { x: 150, y: 770 });
 		await pressKey(page, 'PageDown');
@@ -191,7 +223,7 @@ test('bouton : téléphone tourné, l’appui sur le bouton fonctionne', TEST_TI
 		for (const angle of [90, 270] as const) {
 			await turnPhone(page, angle);
 			await jumpTo(page, BUTTON_ONLY);
-			await sleep(300);
+			await sleep(BUTTON_DELAY_MS);
 			await page.tap(await buttonCenter(page));
 			await expectSlide(page, BUTTON_ONLY + 1);
 		}

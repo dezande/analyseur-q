@@ -241,7 +241,8 @@ strong {
 	cursor: pointer;
 	touch-action: manipulation;
 	box-shadow: 0 0 calc(var(--fit) * 28px) rgba(247, 147, 30, .25);
-	animation: bouton-pulse 2.4s ease-in-out infinite;
+	// Apparition pendant le délai d'activation (stage/deck.ts), puis pulsation.
+	animation: bouton-apparition .7s ease-out both, bouton-pulse 2.4s ease-in-out .7s infinite;
 
 	// Zone de toucher agrandie de 24 px tout autour.
 	&::before {
@@ -253,6 +254,13 @@ strong {
 	&:active {
 		background: rgba(247, 147, 30, .3);
 		transform: scale(.97);
+	}
+}
+
+@keyframes bouton-apparition {
+	from {
+		opacity: 0;
+		transform: scale(.94);
 	}
 }
 

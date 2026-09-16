@@ -11,6 +11,7 @@ import { loadPosition, settings, storePosition } from '../settings/store.ts';
 import { $ } from '../kit/web/dom.ts';
 // Rotation calculée avant le premier ajustement du texte.
 import '../kit/web/orientation.ts';
+import { isPointerDown } from './input.ts';
 import { startLoading, stopLoading } from './loading.ts';
 
 const deckEl = $('#deck');
@@ -191,10 +192,19 @@ void document.fonts?.ready.then(refit);
  * bouton affiché s'il y en a un (le chargement attend l'appui), sinon chargement lancé tout de suite.
  */
 
+/**
+ * Délai avant qu'un bouton devienne actif, en arrivant sur sa slide. Le tap qui amène sur la slide
+ * est souvent suivi d'un autre : sans ce délai, la slide serait traversée sans être vue.
+ * Le bouton apparaît en fondu pendant ce délai (styles/_deck.scss).
+ */
+const BUTTON_DELAY_MS = 700;
+
 /** Slide dont le bouton et le chargement sont préparés ; -1 si aucune. */
 let preparedIndex = -1;
 /** La slide courante a un bouton pas encore appuyé. */
 let waitingForButton = false;
+/** Instant à partir duquel ce bouton peut être actionné. */
+let buttonReadyAt = 0;
 
 /** Slide où mène la slide `i` après son bouton ou son chargement : `boutonVers`, sinon la suivante. */
 const destination = (i: number): number => (SLIDES[i]?.boutonVers ?? i + 2) - 1;
@@ -226,6 +236,7 @@ function syncSlideActions(): void {
 	const section = slideEls[index];
 	waitingForButton = Boolean(slide?.bouton);
 	if (waitingForButton) {
+		buttonReadyAt = performance.now() + BUTTON_DELAY_MS;
 		section.querySelector<HTMLElement>('.bouton')!.hidden = false;
 		const loading = section.querySelector<HTMLElement>('.chargement');
 		if (loading) loading.hidden = true;
@@ -235,9 +246,15 @@ function syncSlideActions(): void {
 	}
 }
 
+/**
+ * Le bouton de la slide courante attend un appui, son délai d'activation est passé et aucun doigt
+ * n'est posé sur l'écran (un doigt encore posé vient du geste qui a amené sur la slide).
+ */
+const buttonReady = (): boolean => waitingForButton && performance.now() >= buttonReadyAt && !isPointerDown();
+
 /** Appui sur le bouton de la slide courante (doigt, ou « slide suivante » tant qu'il attend). */
 export function pressButton(): void {
-	if (!waitingForButton) return;
+	if (!buttonReady()) return;
 	waitingForButton = false;
 	setBlack(false);
 	const section = slideEls[index];
@@ -290,7 +307,10 @@ export function move(m: Move): void {
 	if (isBlack()) setBlack(false);
 	// Bouton qui attend et mène en avant : « suivante » appuie dessus, pour ne jamais sauter l'analyse
 	// par erreur. Un bouton qui ramène en arrière (Recommencer) n'est actionné que par un vrai appui.
-	else if (m === 'next' && waitingForButton && destination(index) > index) pressButton();
+	// Pendant le délai d'activation, « suivante » ne fait rien : la slide reste affichée.
+	else if (m === 'next' && waitingForButton && destination(index) > index) {
+		if (buttonReady()) pressButton();
+	}
 	else goTo(applyMove(index, m, slideCount));
 }
 

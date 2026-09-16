@@ -19,6 +19,11 @@ const ring = $('#hold-ring');
 const gestures = new GestureTracker();
 let holdTimer = 0;
 let touchedSinceShown = false;
+/** Nombre de doigts (ou boutons de souris) posés sur l'écran. */
+let pointersDown = 0;
+
+/** Un doigt est posé : le bouton d'une slide ne s'active pas (stage/deck.ts). */
+export const isPointerDown = (): boolean => pointersDown > 0;
 
 /**
  * Un toucher ou une touche depuis l'ouverture de l'app ou son retour au premier plan.
@@ -62,6 +67,7 @@ stage.addEventListener('pointerdown', (event) => {
 	if (event.pointerType === 'mouse' && event.button !== 0) return;
 	void keepScreenAwake();
 	touchedSinceShown = true;
+	pointersDown++;
 	// Toucher sur un bouton de slide : le navigateur en fait un clic (stage/deck.ts), ce n'est pas un geste.
 	if (event.target instanceof Element && event.target.closest('.bouton')) return;
 	const { x, y } = appPoint(event.clientX, event.clientY);
@@ -89,6 +95,7 @@ stage.addEventListener('pointermove', (event) => {
 });
 
 stage.addEventListener('pointerup', (event) => {
+	pointersDown = Math.max(0, pointersDown - 1);
 	stopHold();
 	holdReleased();
 	const { x, y } = appPoint(event.clientX, event.clientY);
@@ -97,6 +104,7 @@ stage.addEventListener('pointerup', (event) => {
 });
 
 stage.addEventListener('pointercancel', (event) => {
+	pointersDown = Math.max(0, pointersDown - 1);
 	stopHold();
 	holdReleased();
 	gestures.cancel(event.pointerId);
@@ -128,6 +136,7 @@ document.addEventListener('keydown', (event) => {
 
 // App en arrière-plan : aucun geste commencé ne doit se terminer plus tard.
 document.addEventListener('visibilitychange', () => {
+	pointersDown = 0;
 	stopHold();
 	gestures.reset();
 });

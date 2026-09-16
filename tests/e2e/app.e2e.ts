@@ -94,6 +94,7 @@ test('tap à droite : suivante ; tap à gauche : précédente ; bloqué aux extr
 		// Un vrai appui sur le bouton de la dernière slide (Recommencer), s'il y en a un, ramène à sa destination.
 		const last = SLIDES[COUNT - 1];
 		if (last.bouton) {
+			await sleep(900); // délai d'activation du bouton
 			const { x, y } = await page.evaluate<{ x: number; y: number }>(`(() => { const r = document.querySelector('.slide.current .bouton').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
 			await page.tap({ x, y });
 			await expectSlide(page, (last.boutonVers ?? COUNT) - 1);
@@ -367,6 +368,7 @@ test('bouton : la slide attend l’appui, qui passe à la slide suivante (une se
 
 test('bouton : tap juste à côté du bouton (doigt imprécis) compte comme un appui', BUTTON_TEST, async () => {
 	await withApp({ [POSITION_KEY]: String(BUTTON_INDEX) }, async (page) => {
+		await sleep(900); // délai d'activation du bouton
 		const rect = await buttonRect(page);
 		assert.equal(await page.evaluate(`document.elementFromPoint(${rect.right + 12}, ${rect.y}).className`), 'bouton', 'zone de toucher agrandie');
 		await page.tap({ x: rect.right + 12, y: rect.y });
