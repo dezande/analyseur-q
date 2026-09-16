@@ -10,6 +10,7 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 | Version | Commits | Date | En une phrase |
 | --- | --- | --- | --- |
+| [1.2.0](#120) | 25 | 2026-09-16 | Numéro de slide et barre retirés, journal des versions et règles de branche |
 | [1.1.1](#111) | 22 | 2026-09-16 | Corrections d'affichage : texte et bouton qui ne débordent plus |
 | [1.1.0](#110) | 19 | 2026-09-16 | Bouton « Recommencer » et délai d'activation |
 | [1.0.0](#100) | 17 | 2026-09-15 | Prête pour la scène : tous les cas testés |
@@ -27,14 +28,20 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 ## À venir
 
+Rien pour l'instant : le prochain changement s'écrit ici.
+
+## 1.2.0
+
+**2026-09-16** — commits [`eb78c69`](https://github.com/dezande/analyseur-q/commit/eb78c69), [`be0423e`](https://github.com/dezande/analyseur-q/commit/be0423e), [`8d9633d`](https://github.com/dezande/analyseur-q/commit/8d9633d) — 25 commits
+
+L'écran ne montre plus que la slide, et le projet se dote d'un journal des versions et de règles de branche.
+
 - **`main` protégée** : aucun push direct, historique linéaire (fusion en rebase seulement), CI verte obligatoire pour fusionner, branche supprimée après fusion. `npm run deploy` ouvre désormais une pull request et attend sa fusion automatique (kit mis à jour).
 - **Kit accroché à sa version `v1.1.0`**, une version nommée et publiée plutôt qu'un commit quelconque : le kit tient maintenant son propre journal, donc on sait ce qu'on prend en le mettant à jour. Rien ne change dans l'app — types, tests, build et les 47 tests dans Chrome passent à l'identique.
-
 - **Numéro de slide et barre de progression retirés** de l'écran et du menu : l'écran ne montre plus que la slide et le cadre de l'appareil.
 - **Version de Node figée** (`.nvmrc`, Node 24) pour les machines de développement comme pour la CI.
 - **Ce journal**, avec la règle qui le tient à jour : `scripts/check-changelog.ts` refuse un changement qui ne le met pas à jour, la CI le lance avant toute autre étape (`npm run check:changelog` en local), et la règle est testée dans `tests/tools/`.
 - Tags git et Releases GitHub posés rétroactivement sur les commits d'origine, de `v0.1.0` à `v1.1.1`.
-
 ## 1.1.1
 
 **2026-09-16** — commits [`0a6bcd5`](https://github.com/dezande/analyseur-q/commit/0a6bcd5), [`1af2742`](https://github.com/dezande/analyseur-q/commit/1af2742), [`cdbe5c1`](https://github.com/dezande/analyseur-q/commit/cdbe5c1) — 22 commits
