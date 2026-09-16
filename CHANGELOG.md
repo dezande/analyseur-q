@@ -27,6 +27,8 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 ## À venir
 
+- **`main` protégée** : aucun push direct, historique linéaire (fusion en rebase seulement), CI verte obligatoire pour fusionner, branche supprimée après fusion. `npm run deploy` ouvre désormais une pull request et attend sa fusion automatique (kit mis à jour).
+
 - **Numéro de slide et barre de progression retirés** de l'écran et du menu : l'écran ne montre plus que la slide et le cadre de l'appareil.
 - **Version de Node figée** (`.nvmrc`, Node 24) pour les machines de développement comme pour la CI.
 - **Ce journal**, avec la règle qui le tient à jour : `scripts/check-changelog.ts` refuse un changement qui ne le met pas à jour, la CI le lance avant toute autre étape (`npm run check:changelog` en local), et la règle est testée dans `tests/tools/`.
