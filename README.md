@@ -77,7 +77,7 @@ La langue se choisit sur la **première slide**, avec les deux petits boutons `F
 
 À la toute première ouverture, l'app suit la langue du téléphone : anglais s'il est en anglais, français sinon. « Rétablir les réglages par défaut » y revient.
 
-Le **menu** permet d'aller directement à une slide, de recommencer au début, de choisir la transition (fondu, glisse, aucune) et de masquer les aides visuelles : numéro de slide, barre de progression, notes, jauge de l'appui long. Toutes sont visibles par défaut : masquez-les avant de jouer si le public voit l'écran. Le numéro de version de l'app (`1.4.1`, celui du [journal des versions](CHANGELOG.md)) est affiché sous le titre du menu ; le bas du menu détaille ce qui est vraiment installé sur le téléphone — « 1.4.1 — build 36 (abc1234) », le build étant le nombre de commits — ainsi que l'état du maintien de l'écran allumé et le nom du cache hors-ligne.
+Le **menu** permet d'aller directement à une slide, de recommencer au début, de choisir la transition (fondu, glisse, aucune) et de masquer les aides visuelles : numéro de slide, barre de progression, notes, jauge de l'appui long. Toutes sont visibles par défaut : masquez-les avant de jouer si le public voit l'écran. Le numéro de version de l'app (`1.4.2`, celui du [journal des versions](CHANGELOG.md)) est affiché sous le titre du menu ; le bas du menu détaille ce qui est vraiment installé sur le téléphone — « 1.4.2 — build 38 (abc1234) », le build étant le nombre de commits — ainsi que l'état du maintien de l'écran allumé et le nom du cache hors-ligne.
 
 ### Écran toujours allumé
 
