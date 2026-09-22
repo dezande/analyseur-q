@@ -2,7 +2,7 @@
 	"id": "./",
 	"name": "Analyseur Q",
 	"short_name": "Analyseur Q",
-	"description": "Analyseur Q : analyseur d'ondes quantiques des cartes à jouer, modèle AQ-52. 100 % hors-ligne.",
+	"description": "Analyseur Q : analyseur d'ondes quantiques des cartes à jouer, modèle AQ-52, en français ou en anglais. 100 % hors-ligne.",
 	"lang": "fr",
 	"dir": "ltr",
 	"start_url": "./",

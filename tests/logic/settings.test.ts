@@ -7,7 +7,7 @@ test('données absentes ou abîmées : réglages par défaut', () => {
 });
 
 test('réglages valides conservés', () => {
-	const settings = { transition: 'glisse', showNotes: false, showHoldRing: false };
+	const settings = { langue: 'en', transition: 'glisse', showNotes: false, showHoldRing: false };
 	assert.deepEqual(sanitizeSettings(settings), settings);
 });
 
@@ -16,4 +16,11 @@ test('champ invalide : sa valeur par défaut, les autres conservés ; champs inc
 		sanitizeSettings({ transition: 'zoom', showNotes: false, ancien: 1 }),
 		{ ...DEFAULTS, showNotes: false },
 	);
+});
+
+test('langue : celle enregistrée, sinon celle du téléphone passée en second argument', () => {
+	assert.deepEqual(sanitizeSettings(null, 'en'), { ...DEFAULTS, langue: 'en' }, 'rien d\'enregistré');
+	assert.equal(sanitizeSettings({ langue: 'de' }, 'en').langue, 'en', 'langue inconnue');
+	assert.equal(sanitizeSettings({ langue: 'fr' }, 'en').langue, 'fr', 'le choix enregistré l\'emporte');
+	assert.equal(sanitizeSettings({ langue: 'en' }, 'fr').langue, 'en');
 });

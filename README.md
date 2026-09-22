@@ -2,7 +2,7 @@
 
 Analyseur d'ondes quantiques des cartes à jouer, modèle AQ-52.
 
-Diaporama plein écran pour accompagner la routine Rain Man de Leonard Green, en français, dans l'habillage d'un faux appareil pseudo-scientifique.
+Diaporama plein écran pour accompagner la routine Rain Man de Leonard Green, **en français ou en anglais**, dans l'habillage d'un faux appareil pseudo-scientifique.
 Projet anciennement nommé `rain-man` (adresse `dezande.github.io/rain-man/`, qui ne fonctionne plus) : les réglages enregistrés sous l'ancien nom sont repris.
 Une PWA mono-page, 100 % hors-ligne, pilotée au doigt, au clavier ou avec une télécommande de présentation.
 
@@ -14,11 +14,13 @@ Tout le texte est dans **[`src/content/slides.ts`](src/content/slides.ts)** : un
 {
 	titre: '**Analyseur Q**',
 	grand: '52',
-	texte: 'Un paragraphe.\n\nUn autre, avec un **mot mis en valeur**.',
+	texte: { fr: 'Un paragraphe, avec un **mot mis en valeur**.', en: 'One paragraph, with a **highlighted word**.' },
 	image: 'images/carte.png',
-	note: 'Ce que je dis ou fais à ce moment-là.',
+	note: { fr: 'Ce que je dis ou fais à ce moment-là.', en: 'What I say or do at this point.' },
 },
 ```
+
+**Deux langues.** Chaque champ de texte s'écrit soit une seule fois (le même dans les deux langues : un nombre, le nom de l'app), soit une fois par langue : `{ fr: '…', en: '…' }`. Une traduction oubliée ou vide fait échouer `npm test`. Le texte du menu, lui, est dans [`src/content/interface.ts`](src/content/interface.ts).
 
 | Champ | Rôle |
 | --- | --- |
@@ -26,7 +28,7 @@ Tout le texte est dans **[`src/content/slides.ts`](src/content/slides.ts)** : un
 | `titre` | En haut de la slide ; seul sur la slide, il est affiché plus grand. `**titre**` : en orange |
 | `grand` | Un mot ou un nombre en très grand |
 | `texte` | Texte courant. Retour à la ligne conservé, ligne vide = nouveau paragraphe, `**mots**` = mis en valeur. Affiché plus grand sur une slide sans titre ni grand nombre |
-| `image` | Fichier placé dans `public/images/` (le logo : `images/logo.svg`). Plus petite quand la slide contient aussi du texte |
+| `image` | Fichier placé dans `public/images/` (le logo : `images/logo.svg`). Plus petite quand la slide contient aussi du texte. Une image par langue si elle porte du texte, ex. les figures : `R D V` en français, `K Q J` en anglais |
 | `chargement` | Fausse barre de chargement de cette durée, en secondes (1 à 120), lancée à l'arrivée sur la slide. À 100 %, passe seule à la slide suivante, sauf avec un message `termine` |
 | `termine` | Message affiché sous la barre à 100 %, ex. `'Analyse quantique terminée'` ; la slide reste alors affichée jusqu'au tap suivant |
 | `bouton` | Texte d'un gros bouton, ex. `'Lancer l\'analyse'` : l'appui passe à la slide suivante. Avec un chargement sur la même slide, c'est la barre qui démarre à l'appui |
@@ -64,6 +66,14 @@ On s'arrête à la dernière slide : un tap de trop ne ramène jamais au début.
 | Début / Fin | Première / dernière slide |
 | Échap ou M | Menu |
 | B ou « . » | Écran noir (un tap ou une touche le rallume, sans changer de slide) |
+
+### Français ou anglais
+
+Tout est traduit : les slides, le menu, l'aide, le cadre de l'appareil, et même les figures des cartes (`R D V` en français, `K Q J` en anglais). Seul le nom de l'app (« Analyseur Q · AQ-52 ») ne change pas.
+
+La langue se choisit sur la **première slide**, avec les deux petits boutons `FR` / `EN` en haut à droite : tout bascule aussitôt, sans quitter la slide, et le choix est enregistré comme les autres réglages. Un appui sur ces boutons n'avance pas le diaporama, même s'ils sont du côté « slide suivante ».
+
+À la toute première ouverture, l'app suit la langue du téléphone : anglais s'il est en anglais, français sinon. « Rétablir les réglages par défaut » y revient.
 
 Le **menu** permet d'aller directement à une slide, de recommencer au début, de choisir la transition (fondu, glisse, aucune) et de masquer les aides visuelles : numéro de slide, barre de progression, notes, jauge de l'appui long. Toutes sont visibles par défaut : masquez-les avant de jouer si le public voit l'écran. Le numéro de version (nombre de commits) est affiché sous le titre du menu, pour vérifier que le téléphone a bien la dernière version ; le bas du menu détaille le commit, l'état du maintien de l'écran allumé et le nom du cache hors-ligne.
 
@@ -133,8 +143,8 @@ Organisation de `src/` : voir le commentaire en tête de [`src/app.ts`](src/app.
 
 ### Tests
 
-- **Tests unitaires** (`tests/logic/`) : la logique pure de `src/logic/` sous Node (gestes avec des rythmes lents et hésitants, navigation, touches, réglages, mise en valeur du texte) et la validité du contenu de `src/content/slides.ts`.
-- **Tests dans Chrome sur le vrai diaporama** (`tests/e2e/app.e2e.ts`) : l'app compilée dans Chrome sans interface, sur un écran de téléphone simulé, avec de vrais événements tactiles et clavier. Taps, tap lent, glissements, appui de 3 s et appui abandonné, deux doigts, clavier et écran noir, menu (informations comprises), réglages enregistrés, ouverture toujours sur la première slide et slide reprise au rechargement, données abîmées, ancien nom rain-man, aucune slide qui déborde en portrait comme téléphone tourné, étiquettes au même endroit, écran allumé (verrou et vidéo), nouvelle version publiée (nouveau cache, cache d'une autre app intact, réglages et slide en cours conservés, rechargement seulement si l'écran n'a pas été touché), téléphone tourné dans les deux sens, appui long sans clic parasite dans le menu, fonctionnement et images hors-ligne.
+- **Tests unitaires** (`tests/logic/`) : la logique pure de `src/logic/` sous Node (gestes avec des rythmes lents et hésitants, navigation, touches, réglages, langues, mise en valeur du texte) et la validité du contenu de `src/content/slides.ts` et `src/content/interface.ts` dans les deux langues.
+- **Tests dans Chrome sur le vrai diaporama** (`tests/e2e/app.e2e.ts`) : l'app compilée dans Chrome sans interface, sur un écran de téléphone simulé, avec de vrais événements tactiles et clavier. Taps, tap lent, glissements, appui de 3 s et appui abandonné, deux doigts, clavier et écran noir, menu (informations comprises), réglages enregistrés, ouverture toujours sur la première slide et slide reprise au rechargement, langue (boutons FR / EN, menu et images traduits, choix conservé, langue du téléphone à la première ouverture), données abîmées, ancien nom rain-man, aucune slide qui déborde en portrait comme téléphone tourné, étiquettes au même endroit, écran allumé (verrou et vidéo), nouvelle version publiée (nouveau cache, cache d'une autre app intact, réglages et slide en cours conservés, rechargement seulement si l'écran n'a pas été touché), téléphone tourné dans les deux sens, appui long sans clic parasite dans le menu, fonctionnement et images hors-ligne.
 - **Tests dans Chrome sur un diaporama de test** (`tests/e2e/fixture.e2e.ts`) : chaque type de slide reste couvert quel que soit le vrai contenu. Notes, compteur et progression ; transition « aucune » ; bouton seul ; délai d'activation et doigt posé ; bouton Recommencer (`boutonVers`) ; bouton et chargement (attente, appui, tap à droite, glissement, télécommande, retour sur la slide, appui pendant le fondu, téléphone tourné) ; chargement automatique, avec message, zappé, en pause sur écran noir, arrêté par le menu ; étiquette, grand nombre, image et texte long ; souris ; raccourcis clavier ignorés ; jauge de l'appui long ; doigt qui glisse ; toucher interrompu par le système.
 - Les outils communs aux deux fichiers sont dans `tests/e2e/helpers.ts`. Il faut Google Chrome, trouvé automatiquement (sinon, indiquez son chemin dans `CHROME_PATH`).
 - Le calcul du nom de cache au build, la vérification du build, le serveur local et les calculs de rotation sont testés dans le kit.

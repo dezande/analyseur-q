@@ -36,20 +36,27 @@ test('paragraphs : ligne vide = paragraphe, retour à la ligne conservé', () =>
 });
 
 test('slideLabel : titre court pour le menu', () => {
-	assert.equal(slideLabel({ titre: 'Rain **Man**', texte: 'x' }), 'Rain Man');
-	assert.equal(slideLabel({ grand: '52', texte: 'x' }), '52');
-	assert.equal(slideLabel({ texte: 'une\n\n  ligne' }), 'une ligne');
-	assert.equal(slideLabel({ chargement: 5 }), 'Chargement');
-	const long = slideLabel({ texte: 'mot '.repeat(40) });
+	assert.equal(slideLabel({ titre: 'Rain **Man**', texte: 'x' }, 'fr'), 'Rain Man');
+	assert.equal(slideLabel({ grand: '52', texte: 'x' }, 'fr'), '52');
+	assert.equal(slideLabel({ texte: 'une\n\n  ligne' }, 'fr'), 'une ligne');
+	const long = slideLabel({ texte: 'mot '.repeat(40) }, 'fr');
 	assert.equal(long.length, 60);
 	assert.ok(long.endsWith('…'));
+});
+
+test('slideLabel : dans la langue demandée, chargement compris', () => {
+	const slide = { titre: { fr: 'Analyse en cours', en: 'Analysis in progress' } };
+	assert.equal(slideLabel(slide, 'fr'), 'Analyse en cours');
+	assert.equal(slideLabel(slide, 'en'), 'Analysis in progress');
+	assert.equal(slideLabel({ chargement: 5 }, 'fr'), 'Chargement');
+	assert.equal(slideLabel({ chargement: 5 }, 'en'), 'Loading');
 });
 
 test('checkSlides : erreurs lisibles', () => {
 	const none = (): boolean => false;
 	assert.deepEqual(checkSlides([], none), ['aucune slide']);
 	assert.deepEqual(checkSlides([{ note: 'seulement une note' }], none), ['slide 1 : rien à afficher (titre, grand, texte, image, chargement ou bouton)']);
-	assert.deepEqual(checkSlides([{ titre: 'ok' }, { titre: '   ' }], none), ['slide 2 : rien à afficher (titre, grand, texte, image, chargement ou bouton)']);
+	assert.deepEqual(checkSlides([{ titre: 'ok' }, { titre: '   ' }], none), ['slide 2 : champ « titre » vide']);
 	const typo = checkSlides([{ titre: 'x', txte: 'faute' } as never], none);
 	assert.equal(typo.length, 1);
 	assert.match(typo[0], /champ inconnu « txte »/);
@@ -61,7 +68,7 @@ test('checkSlides : erreurs lisibles', () => {
 test('checkSlides : bouton', () => {
 	const none = (): boolean => false;
 	assert.deepEqual(checkSlides([{ bouton: 'Lancer l\'analyse', chargement: 5 }, { titre: 'suite' }], none), [], 'un bouton seul suffit');
-	assert.deepEqual(checkSlides([{ titre: 'x', bouton: '  ' }, { titre: 'suite' }], none), ['slide 1 : bouton sans texte']);
+	assert.deepEqual(checkSlides([{ titre: 'x', bouton: '  ' }, { titre: 'suite' }], none), ['slide 1 : champ « bouton » vide']);
 	assert.deepEqual(checkSlides([{ titre: 'x' }, { titre: 'fin', bouton: 'Suivant' }], none), ['slide 2 : bouton sur la dernière slide, il n\'y a pas de slide suivante (indiquer boutonVers)']);
 });
 
@@ -80,7 +87,7 @@ test('checkSlides : message termine', () => {
 	const none = (): boolean => false;
 	assert.deepEqual(checkSlides([{ titre: 'x' }, { titre: 'Analyse', chargement: 5, termine: 'Terminée' }], none), [], 'avec un message, le chargement peut finir le diaporama');
 	assert.deepEqual(checkSlides([{ titre: 'x', termine: 'Terminée' }, { titre: 'suite' }], none), ['slide 1 : message termine sans chargement']);
-	assert.deepEqual(checkSlides([{ titre: 'x', chargement: 5, termine: ' ' }, { titre: 'suite' }], none), ['slide 1 : message termine vide']);
+	assert.deepEqual(checkSlides([{ titre: 'x', chargement: 5, termine: ' ' }, { titre: 'suite' }], none), ['slide 1 : champ « termine » vide']);
 });
 
 test('checkSlides : chargement', () => {
@@ -90,6 +97,27 @@ test('checkSlides : chargement', () => {
 	assert.deepEqual(checkSlides([{ titre: 'x', chargement: '5' as never }, { titre: 'suite' }], none), ['slide 1 : chargement en secondes, entre 1 et 120 (reçu « 5 »)']);
 	assert.equal(checkSlides([{ titre: 'x', chargement: NaN }, { titre: 'suite' }], none).length, 1);
 	assert.deepEqual(checkSlides([{ titre: 'x' }, { titre: 'fin', chargement: 5 }], none), ['slide 2 : chargement sur la dernière slide, il n\'y a pas de slide suivante (ajouter un message termine)']);
+});
+
+test('checkSlides : les deux langues', () => {
+	const none = (): boolean => false;
+	const both = (): boolean => true;
+	assert.deepEqual(checkSlides([{ titre: { fr: 'Résultat', en: 'Result' } }], none), [], 'texte traduit');
+
+	const missing = checkSlides([{ titre: { fr: 'Résultat' } as never }], none);
+	assert.equal(missing.length, 1);
+	assert.match(missing[0], /champ « titre » : un texte, ou un texte par langue/);
+
+	const empty = checkSlides([{ titre: { fr: 'Résultat', en: '  ' } }], none);
+	assert.equal(empty.length, 1);
+	assert.match(empty[0], /champ « titre »/);
+
+	assert.deepEqual(
+		checkSlides([{ image: { fr: 'images/figure.svg', en: 'images/figure-en.svg' } }], (path) => path.endsWith('figure.svg')),
+		['slide 1 (en) : image introuvable public/images/figure-en.svg'],
+		'image manquante dans une seule langue',
+	);
+	assert.deepEqual(checkSlides([{ image: { fr: 'images/a.svg', en: 'images/b.svg' } }], both), []);
 });
 
 test('contenu du diaporama (src/content/slides.ts) : sans erreur', () => {

@@ -68,8 +68,9 @@ stage.addEventListener('pointerdown', (event) => {
 	void keepScreenAwake();
 	touchedSinceShown = true;
 	pointersDown++;
-	// Toucher sur un bouton de slide : le navigateur en fait un clic (stage/deck.ts), ce n'est pas un geste.
-	if (event.target instanceof Element && event.target.closest('.bouton')) return;
+	// Toucher sur un bouton d'une slide (bouton de la routine, choix de la langue) : le navigateur
+	// en fait un clic (stage/deck.ts), ce n'est pas un geste du diaporama.
+	if (event.target instanceof Element && event.target.closest('.bouton, .langues')) return;
 	const { x, y } = appPoint(event.clientX, event.clientY);
 	if (!gestures.press(event.pointerId, x, y, performance.now())) {
 		stopHold();

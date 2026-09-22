@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-120 -135 240 270" width="240" height="270">
+	<!-- Figure barrée, lettre anglaise : roi (King) de pique sous un panneau d'interdiction. -->
+	<defs>
+		<filter id="ombre" x="-20%" y="-20%" width="140%" height="140%">
+			<feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#000" flood-opacity=".45"/>
+		</filter>
+	</defs>
+	<g transform="rotate(-6)">
+		<rect x="-75.0" y="-107.0" width="150" height="214" rx="14" fill="#fbf7ef" stroke="#1a1a1a" stroke-opacity=".25" stroke-width="1.5" filter="url(#ombre)"/>
+		<rect x="-49.0" y="-77.0" width="98" height="154" rx="6" fill="none" stroke="#15151a" stroke-opacity=".3" stroke-width="2"/>
+		<text x="0" y="26" text-anchor="middle" font-family="Iowan Old Style, Palatino, Georgia, serif" font-weight="700" font-size="84" fill="#15151a">K</text>
+		<text x="-64.0" y="-71.0" font-family="Iowan Old Style, Palatino, Georgia, serif" font-weight="700" font-size="32" fill="#15151a">K</text><path d="M0,-17 C-3,-10 -14,-5 -14,3 C-14,9.5 -8,12 -3,10 C-2,9.5 -1,8.5 -0.6,7.5 C-1,11.5 -3,15 -6,17 L6,17 C3,15 1,11.5 0.6,7.5 C1,8.5 2,9.5 3,10 C8,12 14,9.5 14,3 C14,-5 3,-10 0,-17 Z" transform="translate(-54.0 -51.0) scale(.75)" fill="#15151a"/>
+		<g transform="rotate(180)"><text x="-64.0" y="-71.0" font-family="Iowan Old Style, Palatino, Georgia, serif" font-weight="700" font-size="32" fill="#15151a">K</text><path d="M0,-17 C-3,-10 -14,-5 -14,3 C-14,9.5 -8,12 -3,10 C-2,9.5 -1,8.5 -0.6,7.5 C-1,11.5 -3,15 -6,17 L6,17 C3,15 1,11.5 0.6,7.5 C1,8.5 2,9.5 3,10 C8,12 14,9.5 14,3 C14,-5 3,-10 0,-17 Z" transform="translate(-54.0 -51.0) scale(.75)" fill="#15151a"/></g>
+	</g>
+	<g fill="none" stroke="#d62839" stroke-width="16" opacity=".92">
+		<circle cx="0" cy="0" r="104"/>
+		<line x1="-73" y1="-73" x2="73" y2="73" stroke-linecap="butt"/>
+	</g>
+</svg>

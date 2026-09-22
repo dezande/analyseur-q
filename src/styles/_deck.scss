@@ -272,3 +272,37 @@ strong {
 		box-shadow: 0 0 calc(var(--fit) * 44px) rgba(247, 147, 30, .45);
 	}
 }
+
+// Choix de la langue (première slide seulement, stage/deck.ts) : deux petits boutons FR / EN,
+// en haut à droite. Posés sur la slide et non dans son corps, donc hors de l'ajustement du texte,
+// et à l'écart de la note pour l'artiste, qui occupe le bas de l'écran.
+.langues {
+	position: absolute;
+	top: calc(var(--safe-t) + max(26px, 6vmin));
+	right: calc(var(--safe-r) + max(18px, 5vmin));
+	display: flex;
+	gap: 4px;
+	padding: 4px;
+	border-radius: 999px;
+	background: rgba(0, 0, 0, .35);
+
+	button {
+		min-width: 46px;
+		min-height: 36px;
+		padding: 0 10px;
+		border: 1px solid transparent;
+		border-radius: 999px;
+		background: transparent;
+		color: $ink-soft;
+		font: 600 14px/1 $sans;
+		letter-spacing: .12em;
+		cursor: pointer;
+		touch-action: manipulation;
+
+		&[aria-checked="true"] {
+			border-color: rgba(247, 147, 30, .8);
+			background: rgba(247, 147, 30, .16);
+			color: $accent;
+		}
+	}
+}
