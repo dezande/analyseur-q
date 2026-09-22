@@ -16,7 +16,7 @@ import { SLIDES } from '../../src/content/slides.ts';
 import { t } from '../../src/logic/i18n.ts';
 import {
 	CENTER, click, current, doneMessage, expectSlide, isBlack, isMenuOpen, LEFT, LEGACY_POSITION_KEY, LEGACY_SETTINGS_KEY, openApp,
-	OVERFLOWING, percent, POSITION_KEY, pressKey, RIGHT, SETTINGS_KEY, swipe, TEST_TIMEOUT, text, turnPhone,
+	OVERFLOWING, percent, POSITION_KEY, pressKey, RIGHT, SETTINGS_KEY, setPhoneLang, swipe, TEST_TIMEOUT, text, turnPhone,
 } from './helpers.ts';
 
 const COUNT = SLIDES.length;
@@ -32,9 +32,7 @@ before(async () => {
 	if (COUNT < 3) throw new Error('Ces tests ont besoin d\'au moins 3 slides.');
 	if (PLAIN < 0) throw new Error('Ces tests ont besoin de deux slides simples qui se suivent (ni bouton ni chargement).');
 	server = await startStaticServer('dist', 0);
-	// Chrome en français : l'app suit la langue du téléphone tant qu'aucune n'a été choisie
-	// (logic/i18n.ts), et ces tests lisent les textes français.
-	browser = await Browser.launch(['--lang=fr-FR']);
+	browser = await Browser.launch();
 });
 
 after(async () => {
@@ -96,7 +94,7 @@ const IMAGE_PAR_LANGUE = SLIDES.findIndex((slide) => slide.image !== undefined &
 
 test('langue : FR / EN sur la première slide change les slides, les images et le menu, sans changer de slide', TEST_TIMEOUT, async () => {
 	await withApp({}, async (page) => {
-		assert.equal(await page.evaluate(`document.documentElement.lang`), 'fr', 'Chrome en français');
+		assert.equal(await page.evaluate(`document.documentElement.lang`), 'fr', 'téléphone en français');
 		const enFrancais = await text(page, '.slide.current .slide-body');
 
 		// Un vrai appui sur EN, en haut à droite : la langue change, la slide non (un tap à droite avancerait).
@@ -138,8 +136,7 @@ test('langue : FR / EN sur la première slide change les slides, les images et l
 
 test('téléphone en anglais : l’app s’ouvre en anglais, tant qu’aucune langue n’a été choisie', TEST_TIMEOUT, async () => {
 	await withApp({}, async (page) => {
-		const agent = await page.evaluate<string>(`navigator.userAgent`);
-		await page.send('Emulation.setUserAgentOverride', { userAgent: agent, acceptLanguage: 'en-US,en' });
+		await setPhoneLang(page, 'en-US,en');
 		await page.evaluate(`localStorage.clear(); sessionStorage.clear();`);
 		await page.reload();
 		await page.waitFor(`document.querySelector('.slide.current')`, 'redémarrage');
