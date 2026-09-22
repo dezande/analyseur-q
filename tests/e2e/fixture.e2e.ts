@@ -28,7 +28,12 @@ const FIXTURE: Slide[] = [
 	/* 2 */ { titre: 'Bouton seul', bouton: 'Suivant' },
 	/* 3 */ { titre: 'Bouton et chargement', bouton: 'Lancer', chargement: LOAD_S },
 	/* 4 */ { titre: 'Chargement automatique', chargement: LOAD_S },
-	/* 5 */ { titre: 'Chargement et message', chargement: LOAD_S, termine: '**Terminé**' },
+	/* 5 */ {
+		titre: 'Chargement et message',
+		chargement: LOAD_S,
+		etapes: ['Première étape', { fr: 'Deuxième étape', en: 'Second step' }],
+		termine: '**Terminé**',
+	},
 	/* 6 */ { etiquette: 'Résultat', grand: '42', texte: 'cartes' },
 	/* 7 */ { etiquette: 'Résultat', image: 'images/logo.svg', texte: 'Image et texte' },
 	/* 8 */ { texte: 'Un texte très long. '.repeat(60) },
@@ -237,6 +242,25 @@ test('chargement automatique : démarre à l’arrivée et passe seul à la suit
 		const middle = await percent(page);
 		assert.ok(middle > 0 && middle < 100, `en cours (reçu ${middle} %)`);
 		await expectSlide(page, AUTO_LOADING + 1, LOAD_DONE_MS);
+	});
+});
+
+test('étapes : annoncées l’une après l’autre sous le cadran, puis effacées par le message', TEST_TIMEOUT, async () => {
+	await withFixture({ [POSITION_KEY]: String(MESSAGE) }, async (page) => {
+		assert.equal(await text(page, '.slide.current .chargement-etape'), 'Première étape', 'première étape dès le départ');
+		await page.waitFor(`document.querySelector('.slide.current .chargement-etape').textContent === 'Deuxième étape'`, 'deuxième étape', LOAD_MS + 1000, `document.querySelector('.slide.current .chargement-etape').textContent`);
+		await page.waitFor(`${doneMessage} === 'Terminé'`, 'message à 100 %', LOAD_DONE_MS, doneMessage);
+		assert.equal(await page.evaluate(`document.querySelector('.slide.current .chargement-etape').hidden`), true, 'étapes effacées par le message');
+
+		// Le cadran suit la progression : l'anneau et le camembert sont remplis à 100 %.
+		assert.equal(await page.evaluate(`document.querySelector('.slide.current .chargement-arc').style.strokeDasharray`), '100, 100');
+		assert.equal(await page.evaluate(`document.querySelector('.slide.current .chargement-cadran').style.getPropertyValue('--part')`), '100%');
+
+		// Revenir sur la slide repart de la première étape.
+		await jumpTo(page, MESSAGE + 1);
+		await jumpTo(page, MESSAGE);
+		assert.equal(await text(page, '.slide.current .chargement-etape'), 'Première étape');
+		assert.equal(await page.evaluate(`document.querySelector('.slide.current .chargement-etape').hidden`), false);
 	});
 });
 

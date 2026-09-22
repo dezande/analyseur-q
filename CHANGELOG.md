@@ -27,6 +27,12 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 ---
 
+## [Non publié]
+
+- **Un fond d'appareil de mesure** au lieu d'un écran noir vide : trame fine quadrillée et lueur chaude derrière le contenu, qui s'éteignent vers les bords. Décor seulement (deux dégradés posés sur `#app`, sans animation) : rien ne bouge pendant la routine, le texte reste aussi lisible et le cadre, la note, l'écran noir et le menu passent toujours par-dessus.
+- **Le chargement devient un cadran** : un camembert qui se remplit derrière un anneau de progression, le pourcentage au centre, au lieu de la barre horizontale.
+- **Les étapes de l'analyse s'affichent** sous le cadran, l'une après l'autre : nouveau champ `etapes` dans `src/content/slides.ts`, une liste de textes (traduisibles comme le reste) qui se partagent la durée. L'analyse de la routine annonce six étapes en vocabulaire pseudo-scientifique — étalonnage du capteur quantique, balayage des ondes de spin, décohérence contrôlée… — et dure maintenant 9 secondes pour qu'on ait le temps de les lire.
+
 ## [1.3.0] — 2026-09-22
 
 Commits [`f0ad04f`](https://github.com/dezande/analyseur-q/commit/f0ad04f), [`db899b7`](https://github.com/dezande/analyseur-q/commit/db899b7), [`d0fbc5d`](https://github.com/dezande/analyseur-q/commit/d0fbc5d) — 32 commits

@@ -47,3 +47,13 @@ export function loadingProgress(fraction: number): number {
 
 /** Pourcentage affiché, arrondi vers le bas : 100 % seulement quand c'est vraiment fini. */
 export const percentLabel = (progress: number): string => `${Math.floor(progress * 100)} %`;
+
+/**
+ * Étape affichée (0 à count-1) pour une progression donnée : les étapes se partagent la barre
+ * en parts égales, la dernière tient jusqu'à 100 %. -1 quand la slide n'a pas d'étapes.
+ */
+export function stepIndex(progress: number, count: number): number {
+	if (count <= 0) return -1;
+	const clamped = Math.min(1, Math.max(0, progress));
+	return Math.min(count - 1, Math.floor(clamped * count));
+}

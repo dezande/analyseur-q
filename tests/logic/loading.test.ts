@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadingProgress, percentLabel } from '../../src/logic/loading.ts';
+import { loadingProgress, percentLabel, stepIndex } from '../../src/logic/loading.ts';
 
 test('loadingProgress : de 0 à 1, bornée', () => {
 	assert.equal(loadingProgress(0), 0);
@@ -29,4 +29,20 @@ test('percentLabel : 100 % seulement à la fin', () => {
 	assert.equal(percentLabel(0.999), '99 %');
 	assert.equal(percentLabel(loadingProgress(0.999)), '99 %');
 	assert.equal(percentLabel(1), '100 %');
+});
+
+test('stepIndex : les étapes se partagent la progression, la dernière tient jusqu\'à 100 %', () => {
+	assert.equal(stepIndex(0, 4), 0);
+	assert.equal(stepIndex(0.24, 4), 0);
+	assert.equal(stepIndex(0.25, 4), 1);
+	assert.equal(stepIndex(0.99, 4), 3);
+	assert.equal(stepIndex(1, 4), 3, 'à 100 %, la dernière étape reste affichée');
+	assert.equal(stepIndex(2, 4), 3, 'progression hors bornes');
+	assert.equal(stepIndex(-1, 4), 0);
+	assert.equal(stepIndex(0.5, 1), 0);
+});
+
+test('stepIndex : sans étape, rien à afficher', () => {
+	assert.equal(stepIndex(0.5, 0), -1);
+	assert.equal(stepIndex(0.5, -3), -1);
 });
