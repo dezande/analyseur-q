@@ -10,6 +10,7 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 | Version | Commits | Date | En une phrase |
 | --- | --- | --- | --- |
+| [1.4.2] | 38 | 2026-09-22 | Publication plus rapide : la CI ne vérifie plus deux fois |
 | [1.4.1] | 36 | 2026-09-22 | Numéro de version de l'app dans le menu, publication plus rapide |
 | [1.4.0] | 34 | 2026-09-22 | Fond d'appareil de mesure et chargement en cadran, avec les étapes de l'analyse |
 | [1.3.0] | 32 | 2026-09-22 | L'app en français et en anglais, ouverture toujours sur la première slide |
@@ -29,7 +30,9 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 ---
 
-## [Non publié]
+## [1.4.2] — 2026-09-22
+
+38 commits
 
 - **La CI ne refait plus tout deux fois.** Types, tests unitaires et tests dans Chrome tournent sur la pull request ; après la fusion, `main` ne fait plus que construire et publier. La branche d'une pull request doit être à jour avec `main` et sa CI verte pour fusionner, et la fusion se fait en rebase : `main` porte donc exactement l'arbre déjà vérifié. Un lancement à la main (`workflow_dispatch`) rejoue tout. La publication perd environ deux minutes et demie.
 
@@ -219,6 +222,7 @@ gh release create v1.3.0 --title "v1.3.0 — Titre" --notes-file notes.md
 
 
 
+[1.4.2]: https://github.com/dezande/analyseur-q/releases/tag/v1.4.2
 [1.4.1]: https://github.com/dezande/analyseur-q/releases/tag/v1.4.1
 [1.4.0]: https://github.com/dezande/analyseur-q/releases/tag/v1.4.0
 [1.3.0]: https://github.com/dezande/analyseur-q/releases/tag/v1.3.0
