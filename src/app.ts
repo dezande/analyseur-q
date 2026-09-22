@@ -15,7 +15,7 @@
  *     deck.ts      construction et affichage des slides, ajustement du texte
  *     input.ts     gestes et clavier
  *   settings/    menu
- *     store.ts     réglages et position, enregistrés sur l'appareil
+ *     store.ts     réglages enregistrés sur l'appareil, slide en cours gardée le temps de la session
  *     panel.ts     menu : aller à une slide, réglages
  *   kit/         code commun des accessoires de scène (sous-module kit-scene, voir son README) :
  *                écran allumé, portrait, hors-ligne et mises à jour, stockage, version
@@ -42,7 +42,7 @@ void requestPersistentStorage();
 
 // Mises à jour : rechargement automatique seulement si personne n'a touché l'écran depuis
 // l'ouverture (ou le retour au premier plan) et que le menu est fermé, jamais en pleine routine.
-// La slide en cours est enregistrée, elle serait de toute façon reprise.
+// Le rechargement reprend la slide en cours (gardée le temps de la session).
 setupUpdates({
 	canReload: () => !wasTouchedSinceShown() && !isMenuOpen(),
 	onVisible: forgetTouches,

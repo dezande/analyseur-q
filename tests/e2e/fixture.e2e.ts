@@ -211,7 +211,7 @@ test('bouton Recommencer (boutonVers) : l’appui revient à la première slide 
 		await expectSlide(page, 0);
 		await sleep(400);
 		assert.equal(await current(page), 0);
-		assert.equal(await page.evaluate(`localStorage.getItem('${POSITION_KEY}')`), '0', 'position enregistrée');
+		assert.equal(await page.evaluate(`sessionStorage.getItem('${POSITION_KEY}')`), '0', 'position enregistrée');
 	});
 });
 

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { SCREEN, type Browser, type Page, type Point } from '../../src/kit/node/chrome.ts';
 
-/** Clés d'enregistrement (src/settings/store.ts). */
+/** Clés d'enregistrement (src/settings/store.ts) : réglages dans localStorage, position dans sessionStorage. */
 export const SETTINGS_KEY = 'analyseur-q:settings:v1';
 export const POSITION_KEY = 'analyseur-q:position:v1';
 /** Clés d'avant le renommage du projet (rain-man). */
@@ -18,15 +18,16 @@ export const LEFT: Point = { x: 50, y: SCREEN.height / 2 };
 export const CENTER: Point = { x: SCREEN.width / 2, y: SCREEN.height / 2 };
 
 /**
- * Ouvre l'app à `url` dans un nouvel onglet avec `storage` déjà enregistré (clé → valeur brute),
- * attend ses `count` slides, lance `run`, puis vérifie qu'aucune erreur JavaScript n'a eu lieu.
+ * Ouvre l'app à `url` dans un nouvel onglet avec `storage` déjà enregistré (clé → valeur brute ;
+ * POSITION_KEY dans sessionStorage, le reste dans localStorage), attend ses `count` slides,
+ * lance `run`, puis vérifie qu'aucune erreur JavaScript n'a eu lieu.
  */
 export async function openApp(browser: Browser, url: string, count: number, storage: Record<string, string>, run: (page: Page) => Promise<void>): Promise<void> {
 	const page = await browser.newPage();
 	try {
 		await page.goto(url);
-		const setup = Object.entries(storage).map(([key, value]) => `localStorage.setItem(${JSON.stringify(key)}, ${JSON.stringify(value)});`).join('');
-		await page.evaluate(`localStorage.clear(); ${setup}`);
+		const setup = Object.entries(storage).map(([key, value]) => `${key === POSITION_KEY ? 'sessionStorage' : 'localStorage'}.setItem(${JSON.stringify(key)}, ${JSON.stringify(value)});`).join('');
+		await page.evaluate(`localStorage.clear(); sessionStorage.clear(); ${setup}`);
 		await page.reload();
 		await page.waitFor(`document.querySelectorAll('#deck .slide').length === ${count}`, 'slides construites');
 		await run(page);

@@ -73,7 +73,7 @@ export const SLIDES: readonly Slide[] = [
 	{
 		etiquette: 'Résultat',
 		image: 'images/figure-barree.svg',
-		texte: 'Les cartes noires sont toutes des **cartes numérotées** : aucune figure.',
+		texte: 'Les cartes noires sont toutes des **cartes à points** : aucune figure.',
 	},
 	{
 		etiquette: 'Résultat',
