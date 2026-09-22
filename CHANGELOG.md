@@ -10,6 +10,7 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 | Version | Commits | Date | En une phrase |
 | --- | --- | --- | --- |
+| [1.3.0] | 31 | 2026-09-22 | L'app en français et en anglais, ouverture toujours sur la première slide |
 | [1.2.0] | 26 | 2026-09-16 | Numéro de slide et barre retirés, journal des versions et règles de branche |
 | [1.1.1] | 22 | 2026-09-16 | Corrections d'affichage : texte et bouton qui ne débordent plus |
 | [1.1.0] | 19 | 2026-09-16 | Bouton « Recommencer » et délai d'activation |
@@ -26,7 +27,11 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 ---
 
-## [Non publié]
+## [1.3.0] — 2026-09-22
+
+Commits [`f0ad04f`](https://github.com/dezande/analyseur-q/commit/f0ad04f), [`db899b7`](https://github.com/dezande/analyseur-q/commit/db899b7), [`d0fbc5d`](https://github.com/dezande/analyseur-q/commit/d0fbc5d) — 31 commits
+
+L'app se joue maintenant en français comme en anglais, et s'ouvre toujours prête à démarrer.
 
 - **L'app parle français et anglais.** Tout est traduit : les slides, le menu, l'aide, le cadre de l'appareil, et jusqu'aux figures des cartes (`R D V` en français, `K Q J` en anglais, deux images). Seul le nom de l'app ne change pas. La langue se choisit sur la première slide, avec deux petits boutons `FR` / `EN` en haut à droite : tout bascule aussitôt sans quitter la slide, un appui dessus n'avance pas le diaporama, et le choix est enregistré comme les autres réglages. À la première ouverture, l'app suit la langue du téléphone.
 - **Le texte s'écrit une fois par langue** : dans `src/content/slides.ts`, chaque champ accepte `{ fr: '…', en: '…' }` (ou un seul texte quand il est commun aux deux) ; le texte du menu est réuni dans le nouveau `src/content/interface.ts`, et `public/index.html` ne porte plus que des clés. Une traduction oubliée ou vide fait échouer `npm test`, dans les deux langues, images comprises.
@@ -190,6 +195,7 @@ gh release create v1.3.0 --title "v1.3.0 — Titre" --notes-file notes.md
 
 
 
+[1.3.0]: https://github.com/dezande/analyseur-q/releases/tag/v1.3.0
 [1.2.0]: https://github.com/dezande/analyseur-q/releases/tag/v1.2.0
 [1.1.1]: https://github.com/dezande/analyseur-q/releases/tag/v1.1.1
 [1.1.0]: https://github.com/dezande/analyseur-q/releases/tag/v1.1.0
