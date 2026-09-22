@@ -109,7 +109,7 @@ Sur iPhone, l'app installée a son propre stockage, séparé de Safari : **ouvre
 
 ## Publication
 
-**Chaque push sur `main` met l'app à jour** (https://dezande.github.io/analyseur-q/). GitHub Actions vérifie les types, lance les tests unitaires, compile, puis teste l'app compilée dans Chrome. Si tout passe, il déploie sur GitHub Pages ; sinon, rien n'est publié.
+**Chaque push sur `main` met l'app à jour** (https://dezande.github.io/analyseur-q/). Tout passe par une pull request : GitHub Actions y vérifie les types, lance les tests unitaires, compile, puis teste l'app compilée dans Chrome ; sans CI verte, pas de fusion. Après la fusion, `main` ne refait pas ces vérifications — la branche devait être à jour avec `main` et la fusion se fait en rebase, donc `main` porte exactement l'arbre déjà testé — elle construit et déploie sur GitHub Pages.
 
 Le nom du cache hors-ligne est une empreinte de tous les fichiers de `dist/`, **numéro de version compris** : chaque nouvelle version change ce nom, même si seul le numéro a changé, et les téléphones retéléchargent tout ; l'ancien cache est supprimé. Seuls les caches de cette app sont supprimés : les autres apps publiées sur `dezande.github.io` (même origine, donc mêmes caches) ne sont pas touchées. Sans changement, le nom reste le même et rien n'est retéléchargé. La liste des fichiers mis en cache est elle aussi calculée au build : rien à mettre à jour à la main, même en ajoutant une image.
 

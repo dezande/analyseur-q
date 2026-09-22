@@ -34,10 +34,16 @@ jobs:
 
       - run: npm ci
 
+      # Types et tests tournent sur la pull request, dont la branche doit être à jour avec main
+      # et la CI verte pour fusionner : après la fusion en rebase, main porte exactement l'arbre
+      # déjà vérifié. On ne le revérifie donc pas, on le construit et on le publie.
+      # « workflow_dispatch » (lancement à la main) rejoue tout.
       - name: Vérification des types
+        if: github.event_name != 'push'
         run: npm run typecheck
 
       - name: Tests unitaires
+        if: github.event_name != 'push'
         run: npm test
 
       - name: Build
@@ -48,6 +54,7 @@ jobs:
       # Google Chrome est préinstallé sur les machines ubuntu de GitHub (variable CHROME_BIN).
       # En cas d'échec, rien n'est publié.
       - name: Tests dans Chrome
+        if: github.event_name != 'push'
         run: npm run test:e2e
 
       - name: Artefact GitHub Pages

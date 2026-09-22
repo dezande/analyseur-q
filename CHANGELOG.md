@@ -29,6 +29,10 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 ---
 
+## [Non publié]
+
+- **La CI ne refait plus tout deux fois.** Types, tests unitaires et tests dans Chrome tournent sur la pull request ; après la fusion, `main` ne fait plus que construire et publier. La branche d'une pull request doit être à jour avec `main` et sa CI verte pour fusionner, et la fusion se fait en rebase : `main` porte donc exactement l'arbre déjà vérifié. Un lancement à la main (`workflow_dispatch`) rejoue tout. La publication perd environ deux minutes et demie.
+
 ## [1.4.1] — 2026-09-22
 
 36 commits
