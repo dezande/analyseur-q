@@ -77,7 +77,7 @@ La langue se choisit sur la **première slide**, avec les deux petits boutons `F
 
 À la toute première ouverture, l'app suit la langue du téléphone : anglais s'il est en anglais, français sinon. « Rétablir les réglages par défaut » y revient.
 
-Le **menu** permet d'aller directement à une slide, de recommencer au début, de choisir la transition (fondu, glisse, aucune) et de masquer les aides visuelles : numéro de slide, barre de progression, notes, jauge de l'appui long. Toutes sont visibles par défaut : masquez-les avant de jouer si le public voit l'écran. Le numéro de version (nombre de commits) est affiché sous le titre du menu, pour vérifier que le téléphone a bien la dernière version ; le bas du menu détaille le commit, l'état du maintien de l'écran allumé et le nom du cache hors-ligne.
+Le **menu** permet d'aller directement à une slide, de recommencer au début, de choisir la transition (fondu, glisse, aucune) et de masquer les aides visuelles : numéro de slide, barre de progression, notes, jauge de l'appui long. Toutes sont visibles par défaut : masquez-les avant de jouer si le public voit l'écran. Le numéro de version de l'app (`1.4.0`, celui du [journal des versions](CHANGELOG.md)) est affiché sous le titre du menu ; le bas du menu détaille ce qui est vraiment installé sur le téléphone — « 1.4.0 — build 34 (ef241f0) », le build étant le nombre de commits — ainsi que l'état du maintien de l'écran allumé et le nom du cache hors-ligne.
 
 ### Écran toujours allumé
 
@@ -105,7 +105,7 @@ Sur iPhone, l'app installée a son propre stockage, séparé de Safari : **ouvre
 1. **Hors-ligne** : ouvrir l'app installée avec du réseau, ouvrir le menu (appui de 3 s) et vérifier que « Cache hors-ligne » affiche un nom `analyseur-q-…`. Fermer l'app (la faire glisser vers le haut dans le sélecteur d'apps), passer en mode avion, la rouvrir, faire défiler toutes les slides.
 2. **Écran allumé** : dans Réglages → Luminosité et affichage → Verrouillage automatique, choisir 30 secondes. Ouvrir l'app, toucher une fois l'écran, puis ne plus y toucher pendant 2 minutes : l'écran ne doit ni baisser ni s'éteindre. Refaire le test en mode économie d'énergie, qui peut couper la vidéo. Remettre ensuite le verrouillage automatique habituel.
 3. **Portrait** : tourner le téléphone dans les deux sens : l'affichage reste dans l'axe du téléphone, les taps à droite (côté droit du téléphone) avancent toujours.
-4. **Version** : après une publication, rouvrir l'app avec du réseau, la fermer et la rouvrir : le menu doit afficher le nouveau numéro de version et un nouveau nom de cache, et les réglages (transition, aides masquées) doivent être restés les mêmes. L'app doit s'ouvrir sur la première slide.
+4. **Version** : après une publication, rouvrir l'app avec du réseau, la fermer et la rouvrir : le bas du menu doit afficher le nouveau numéro de build et un nouveau nom de cache, et les réglages (transition, aides masquées) doivent être restés les mêmes. L'app doit s'ouvrir sur la première slide.
 
 ## Publication
 
@@ -115,9 +115,12 @@ Le nom du cache hors-ligne est une empreinte de tous les fichiers de `dist/`, **
 
 Une nouvelle version s'installe dès que l'app est ouverte avec du réseau. Si personne n'a touché l'écran depuis l'ouverture, l'app se recharge aussitôt ; sinon elle garde la version en cours jusqu'à l'ouverture suivante : jamais de rechargement en pleine routine.
 
+Les tests dans Chrome, longs, ne sont pas rejoués en local au moment de publier : la CI de la pull request les lance et bloque la fusion si l'un d'eux échoue.
+
 ```sh
-npm run deploy              # vérifie en local, pousse, suit GitHub Actions et contrôle le site
-npm run deploy -- --dry-run # vérifications, build et tests seulement, sans push
+npm run deploy              # vérifie en local, ouvre la pull request, suit GitHub Actions et contrôle le site
+npm run deploy -- --complet # en rejouant aussi les tests dans Chrome en local
+npm run deploy -- --dry-run # vérifications et build seulement, sans push
 ```
 
 ## Journal des versions

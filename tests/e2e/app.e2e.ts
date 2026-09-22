@@ -14,6 +14,7 @@ import { Browser, SCREEN, type Page, type Point } from '../../src/kit/node/chrom
 import { startStaticServer, type StaticServer } from '../../src/kit/node/static-server.ts';
 import { SLIDES } from '../../src/content/slides.ts';
 import { t } from '../../src/logic/i18n.ts';
+import { APP_VERSION } from '../../src/version.ts';
 import {
 	CENTER, click, current, doneMessage, expectSlide, isBlack, isMenuOpen, LEFT, LEGACY_POSITION_KEY, LEGACY_SETTINGS_KEY, openApp,
 	OVERFLOWING, percent, POSITION_KEY, pressKey, RIGHT, SETTINGS_KEY, setPhoneLang, swipe, TEST_TIMEOUT, text, turnPhone,
@@ -294,10 +295,10 @@ test('menu : aller à une slide, recommencer', TEST_TIMEOUT, async () => {
 		await pressKey(page, 'm');
 		assert.equal(await page.evaluate(`document.querySelector('#slide-list .current').dataset.index`), '2');
 		assert.equal(await text(page, '#menu-position'), `3 / ${COUNT}`);
-		assert.match(await text(page, '#menu-version'), /^Version \S+$/);
-		assert.doesNotMatch(await text(page, '#menu-version'), /__APP_VERSION__/);
+		assert.equal(await text(page, '#menu-version'), `Version ${APP_VERSION}`, 'numéro de version de l’app (src/version.ts)');
 		// Informations du bas du menu : toutes remplies.
-		assert.match(await text(page, '#about-version'), /^\S+ \(.+\)$/, 'version et commit');
+		assert.match(await text(page, '#about-version'), new RegExp(`^${APP_VERSION} — build \\S+ \\(.+\\)$`), 'version, build et commit');
+		assert.doesNotMatch(await text(page, '#about-version'), /__APP_VERSION__/, 'numéro de build inscrit au build');
 		await page.waitFor(`document.querySelector('#about-storage').textContent !== ''`, 'état du stockage affiché');
 		assert.match(await text(page, '#about-storage'), /^(persistant|non garanti|inconnu)$/);
 		assert.match(await text(page, '#about-cache'), /^(inactif|analyseur-q-\S+)$/);
@@ -625,7 +626,9 @@ async function waitForReload(page: Page, timeoutMs = 15_000): Promise<void> {
 	throw new Error('Attente dépassée : rechargement automatique après la mise à jour');
 }
 
+/** Le menu annonce le numéro de version de l'app ; le numéro de build est dans les informations. */
 const MENU_VERSION = `document.querySelector('#menu-version').textContent`;
+const ABOUT_VERSION = `document.querySelector('#about-version').textContent`;
 
 /** Réglages différents des valeurs par défaut, pour vérifier qu'une mise à jour les conserve. */
 const CUSTOM_SETTINGS = { langue: 'fr', transition: 'glisse', showNotes: false, showHoldRing: false };
@@ -650,7 +653,8 @@ test('nouvelle version publiée, écran pas touché : nouveau cache, ancien supp
 			await page.evaluate(`navigator.serviceWorker.getRegistration().then((r) => r.update())`);
 			await waitForReload(page);
 			await pressKey(page, 'm');
-			await page.waitFor(`${MENU_VERSION} === 'Version 9999'`, 'nouvelle version affichée', 5000, MENU_VERSION);
+			await page.waitFor(`${ABOUT_VERSION}.includes('build 9999')`, 'nouveau build affiché', 5000, ABOUT_VERSION);
+			assert.equal(await text(page, '#menu-version'), `Version ${APP_VERSION}`, 'numéro de version de l’app inchangé');
 			await page.waitFor(`document.querySelector('#about-cache').textContent === ${JSON.stringify(newCache)}`, 'nouveau cache dans le menu', 5000, `document.querySelector('#about-cache').textContent`);
 			assert.deepEqual((await page.evaluate<string[]>(`caches.keys()`)).sort(), [newCache, 'voyante-autre-app'].sort(), 'nos anciens caches supprimés, celui de l’autre app intact');
 			await expectCustomSettingsKept(page);
@@ -678,7 +682,7 @@ test('nouvelle version publiée pendant l’utilisation : pas de rechargement, n
 			await page.waitFor(`document.querySelectorAll('#deck .slide').length > 0`, 'app rouverte');
 			assert.equal(await current(page), 1);
 			await pressKey(page, 'm');
-			await page.waitFor(`${MENU_VERSION} === 'Version 8888'`, 'nouvelle version à l’ouverture suivante', 5000, MENU_VERSION);
+			await page.waitFor(`${ABOUT_VERSION}.includes('build 8888')`, 'nouveau build à l’ouverture suivante', 5000, ABOUT_VERSION);
 			await expectCustomSettingsKept(page);
 		}, site.url);
 	});

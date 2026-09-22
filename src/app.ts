@@ -27,6 +27,7 @@
  *     keys.ts        touches du clavier
  *     settings.ts    forme et validation des réglages
  *     i18n.ts        les deux langues : textes traduits, langue du téléphone
+ *   version.ts   numéro de version de l'app (semver), affiché dans le menu
  *   sw/          compilation du service worker du kit (kit/sw/sw.ts)
  *   styles/      styles Sass
  *
