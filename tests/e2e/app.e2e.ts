@@ -55,7 +55,7 @@ test('démarrage : toutes les slides, la première affichée, sans erreur JavaSc
 	});
 });
 
-test('position enregistrée : reprise après rechargement ; position abîmée : première slide', TEST_TIMEOUT, async () => {
+test('rechargement de la page : slide en cours reprise ; position abîmée : première slide', TEST_TIMEOUT, async () => {
 	await withApp({ [POSITION_KEY]: '2' }, async (page) => {
 		assert.equal(await current(page), 2);
 		await page.tap(RIGHT);
@@ -69,6 +69,17 @@ test('position enregistrée : reprise après rechargement ; position abîmée : 
 			assert.equal(await current(page), raw === '999' ? COUNT - 1 : 0, raw);
 		});
 	}
+});
+
+test('nouvelle ouverture : première slide, même avec une position restée sur l’appareil', TEST_TIMEOUT, async () => {
+	// La position ne vit que le temps de la session : une valeur laissée dans localStorage
+	// (ancienne version de l'app, ancien nom du projet) ne doit plus ramener en pleine routine.
+	await withApp({ [LEGACY_POSITION_KEY]: '2' }, async (page) => {
+		await page.evaluate(`localStorage.setItem('${POSITION_KEY}', '2'); sessionStorage.clear();`);
+		await page.reload();
+		await page.waitFor(`document.querySelector('.slide.current')`, 'redémarrage');
+		assert.equal(await current(page), 0);
+	});
 });
 
 /* ================= Gestes ================= */
@@ -214,7 +225,7 @@ test('menu : aller à une slide, recommencer', TEST_TIMEOUT, async () => {
 		await click(page, '#slide-list button[data-index="2"]');
 		await expectSlide(page, 2);
 		assert.equal(await page.evaluate(isMenuOpen), false);
-		assert.equal(await page.evaluate(`localStorage.getItem('${POSITION_KEY}')`), '2');
+		assert.equal(await page.evaluate(`sessionStorage.getItem('${POSITION_KEY}')`), '2');
 
 		await pressKey(page, 'm');
 		assert.equal(await page.evaluate(`document.querySelector('#slide-list .current').dataset.index`), '2');
@@ -266,15 +277,14 @@ test('menu : aides visuelles et transition, appliquées et enregistrées', TEST_
 	});
 });
 
-test('ancien nom du projet : réglages et position de rain-man repris', TEST_TIMEOUT, async () => {
-	const legacy = { transition: 'aucune', showNotes: true, showHoldRing: true };
-	await withApp({ [LEGACY_SETTINGS_KEY]: JSON.stringify(legacy), [LEGACY_POSITION_KEY]: '2' }, async (page) => {
-		assert.equal(await current(page), 2);
+test('ancien nom du projet : réglages de rain-man repris', TEST_TIMEOUT, async () => {
+	const legacy = { transition: 'aucune', showNotes: false, showHoldRing: true };
+	await withApp({ [LEGACY_SETTINGS_KEY]: JSON.stringify(legacy) }, async (page) => {
 		assert.equal(await page.evaluate(`document.querySelector('#deck').dataset.transition`), 'aucune');
-		// Au premier changement, tout est enregistré sous les nouvelles clés.
-		await page.tap(RIGHT);
-		await expectSlide(page, 3);
-		assert.equal(await page.evaluate(`localStorage.getItem('${POSITION_KEY}')`), '3');
+		assert.equal(await page.evaluate(`document.querySelector('#note').hidden`), true);
+		// Au premier changement, tout est enregistré sous la nouvelle clé, anciens réglages compris.
+		await click(page, '#transition-seg button[data-transition="glisse"]');
+		assert.deepEqual(await page.evaluate(`JSON.parse(localStorage.getItem('${SETTINGS_KEY}'))`), { ...legacy, transition: 'glisse' });
 	});
 });
 

@@ -28,6 +28,8 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 ## [Non publié]
 
+- **Ouverture toujours sur la première slide** : la slide en cours n'est plus enregistrée sur l'appareil, seulement gardée le temps de la session (sessionStorage). L'app est donc prête à jouer à chaque ouverture, même après une routine laissée en cours, alors qu'un rechargement de la page (mise à jour installée, onglet rouvert par le système) reprend toujours la slide affichée : jamais de retour au début en pleine routine. Les réglages, eux, restent enregistrés comme avant.
+- **« Cartes à points »** au lieu de « cartes numérotées » sur la slide des cartes noires.
 - **Journal des versions aligné sur le kit** : la vérification vient de `src/kit/node/check-changelog.ts` au lieu d'un script local (supprimé, ainsi que ses tests), et le fichier prend le format du kit — sections `## [1.2.0] — 2026-09-16`, « Non publié » en tête, liens vers les publications en bas. Les trois dépôts (kit, Analyseur Q, boule de cristal) tiennent donc leur journal de la même façon.
 
 ## [1.2.0] — 2026-09-16
