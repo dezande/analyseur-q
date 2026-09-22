@@ -1,0 +1,45 @@
+@use "tokens" as *;
+@use "mixins" as *;
+
+/*
+ * Fond de l'app, derrière les slides : une trame d'écran d'instrument et une lueur centrale,
+ * pour que l'écran ne soit pas un rectangle noir vide. Purement décoratif et sans animation :
+ * deux pseudo-éléments posés sur #app (qui pivote avec le téléphone, kit/styles/_app.scss),
+ * donc rien à mesurer pour l'ajustement du texte et rien à repeindre pendant la routine.
+ *
+ * Tout s'éteint vers les bords et reste très peu contrasté : le texte des slides, le cadre
+ * d'instrument et l'écran noir passent par-dessus (couches : fond 0, scène 1, cadre 5, note 11,
+ * jauge 30, écran noir 40, menu 50).
+ */
+
+// Écartement de la trame et rayon de la lueur, un peu plus larges sur grand écran.
+$maille: clamp(30px, 9vmin, 46px);
+
+#app {
+	&::before,
+	&::after {
+		content: "";
+		position: fixed;
+		inset: 0;
+		z-index: 0;
+		pointer-events: none;
+	}
+
+	// Trame : un trait fin tous les $maille, dans les deux sens, effacée vers les bords.
+	&::before {
+		background-image:
+			repeating-linear-gradient(0deg, rgba(247, 147, 30, .055) 0 1px, transparent 1px $maille),
+			repeating-linear-gradient(90deg, rgba(247, 147, 30, .055) 0 1px, transparent 1px $maille);
+		@include mask-image(radial-gradient(120% 80% at 50% 45%, #000 18%, transparent 78%));
+	}
+
+	// Lueur chaude derrière le contenu, comme un écran rétroéclairé.
+	&::after {
+		background: radial-gradient(70% 45% at 50% 42%, rgba(247, 147, 30, .13), transparent 70%);
+	}
+}
+
+// La scène passe devant le fond (les deux sont « position: fixed » dans #app).
+#stage {
+	z-index: 1;
+}

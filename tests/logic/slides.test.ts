@@ -120,6 +120,22 @@ test('checkSlides : les deux langues', () => {
 	assert.deepEqual(checkSlides([{ image: { fr: 'images/a.svg', en: 'images/b.svg' } }], both), []);
 });
 
+test('checkSlides : étapes du chargement', () => {
+	const none = (): boolean => false;
+	assert.deepEqual(
+		checkSlides([{ chargement: 5, etapes: ['Étalonnage', { fr: 'Mesure', en: 'Measurement' }] }, { titre: 'suite' }], none),
+		[],
+		'étapes en texte commun ou traduites',
+	);
+	assert.deepEqual(checkSlides([{ titre: 'x', etapes: ['Étalonnage'] }, { titre: 'suite' }], none), ['slide 1 : etapes sans chargement']);
+	assert.deepEqual(checkSlides([{ chargement: 5, etapes: [] }, { titre: 'suite' }], none), ['slide 1 : etapes doit être une liste de textes, ex. etapes: [\'Étalonnage\', \'Mesure\']']);
+	assert.deepEqual(checkSlides([{ chargement: 5, etapes: 'Étalonnage' as never }, { titre: 'suite' }], none), ['slide 1 : etapes doit être une liste de textes, ex. etapes: [\'Étalonnage\', \'Mesure\']']);
+	assert.deepEqual(checkSlides([{ chargement: 5, etapes: ['Étalonnage', '  '] }, { titre: 'suite' }], none), ['slide 1 : étape 2 vide']);
+	const partial = checkSlides([{ chargement: 5, etapes: [{ fr: 'Mesure' } as never] }, { titre: 'suite' }], none);
+	assert.equal(partial.length, 1);
+	assert.match(partial[0], /étape 1 : un texte, ou un texte par langue/);
+});
+
 test('contenu du diaporama (src/content/slides.ts) : sans erreur', () => {
 	const errors = checkSlides(SLIDES, (path) => existsSync(join('public', path)));
 	assert.deepEqual(errors, [], `Slides à corriger :\n- ${errors.join('\n- ')}`);

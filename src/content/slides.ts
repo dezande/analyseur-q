@@ -14,9 +14,11 @@
  *          **mots** entre doubles astérisques = mis en valeur ; plus grand sans titre ni grand
  *   image  fichier placé dans public/images/, ex. 'images/carte.png' ; une image par langue
  *          si elle porte du texte (les figures : R D V en français, K Q J en anglais)
- *   chargement  fausse barre de chargement de cette durée en secondes (1 à 120) ;
+ *   chargement  faux chargement de cette durée en secondes (1 à 120), affiché en cadran ;
  *          à 100 %, passe seule à la slide suivante (sauf avec un message termine)
- *   termine message affiché sous la barre à 100 %, ex. 'Analyse quantique terminée' ;
+ *   etapes liste des étapes annoncées sous le cadran, dans l'ordre, ex.
+ *          ['Étalonnage du capteur', 'Mesure des états'] : elles se partagent la durée
+ *   termine message affiché sous le cadran à 100 %, ex. 'Analyse quantique terminée' ;
  *          la slide reste alors affichée jusqu'au tap suivant
  *   bouton texte d'un bouton, ex. 'Lancer l\'analyse' : passe à la slide suivante à l'appui
  *          (avec un chargement sur la même slide, c'est lui qui démarre)
@@ -54,10 +56,18 @@ export const SLIDES: readonly Slide[] = [
 	},
 	{
 		titre: { fr: 'Analyse en cours', en: 'Analysis in progress' },
-		chargement: 6,
+		chargement: 9,
+		etapes: [
+			{ fr: 'Étalonnage du capteur quantique', en: 'Calibrating the quantum sensor' },
+			{ fr: 'Balayage des ondes de spin du paquet', en: 'Scanning the deck\'s spin waves' },
+			{ fr: 'Mesure des états superposés', en: 'Measuring the superposed states' },
+			{ fr: 'Décohérence contrôlée des cartes face en bas', en: 'Controlled decoherence of the face-down cards' },
+			{ fr: 'Corrélation chromatique et indices de parité', en: 'Chromatic correlation and parity indices' },
+			{ fr: 'Consolidation du rapport d\'analyse', en: 'Consolidating the analysis report' },
+		],
 		note: {
-			fr: 'La barre démarre à l\'arrivée sur la slide ; à 100 %, passe seule à la slide suivante.',
-			en: 'The bar starts on arriving at the slide; at 100 %, it moves on by itself.',
+			fr: 'Le cadran démarre à l\'arrivée sur la slide ; à 100 %, passe seule à la slide suivante.',
+			en: 'The dial starts on arriving at the slide; at 100 %, it moves on by itself.',
 		},
 	},
 	{

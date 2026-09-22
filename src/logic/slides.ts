@@ -31,7 +31,12 @@ export interface Slide {
 	 * sauf si la slide a un message `termine`.
 	 */
 	chargement?: number;
-	/** Message affiché sous la barre à 100 %, ex. « Analyse quantique terminée » ; la slide reste alors affichée. */
+	/**
+	 * Étapes annoncées sous le cadran pendant le chargement, dans l'ordre, ex. « Étalonnage du
+	 * capteur quantique ». Elles se partagent la durée en parts égales. Sans chargement, inutile.
+	 */
+	etapes?: readonly Texte[];
+	/** Message affiché sous le cadran à 100 %, ex. « Analyse quantique terminée » ; la slide reste alors affichée. */
 	termine?: Texte;
 	/**
 	 * Texte d'un bouton, ex. « Lancer l'analyse ». Avec un chargement, celui-ci ne démarre qu'à l'appui ;
@@ -92,7 +97,7 @@ export function slideLabel(slide: Slide, lang: Lang): string {
 	return flat.length > LABEL_MAX ? `${flat.slice(0, LABEL_MAX - 1)}…` : flat;
 }
 
-const FIELDS: readonly (keyof Slide)[] = ['etiquette', 'titre', 'grand', 'texte', 'image', 'chargement', 'termine', 'bouton', 'boutonVers', 'note'];
+const FIELDS: readonly (keyof Slide)[] = ['etiquette', 'titre', 'grand', 'texte', 'image', 'chargement', 'etapes', 'termine', 'bouton', 'boutonVers', 'note'];
 /** Champs dont le texte peut être écrit une fois par langue. */
 const TRANSLATED: readonly (keyof Slide)[] = ['etiquette', 'titre', 'grand', 'texte', 'image', 'termine', 'bouton', 'note'];
 
@@ -156,6 +161,22 @@ export function checkSlides(slides: readonly Slide[], imageExists: (path: string
 			if (typeof target !== 'number' || !Number.isInteger(target) || target < 1 || target > slides.length) {
 				errors.push(`${where} : boutonVers doit être un numéro de slide entre 1 et ${slides.length} (reçu « ${String(target)} »)`);
 			}
+		}
+		if (slide.etapes !== undefined) {
+			if (!Array.isArray(slide.etapes) || slide.etapes.length === 0) {
+				errors.push(`${where} : etapes doit être une liste de textes, ex. etapes: ['Étalonnage', 'Mesure']`);
+			} else {
+				slide.etapes.forEach((etape, n) => {
+					if (!isTexte(etape)) {
+						errors.push(`${where} : étape ${n + 1} : un texte, ou un texte par langue { fr: '…', en: '…' } (reçu « ${JSON.stringify(etape)} »)`);
+						return;
+					}
+					for (const { lang, text } of versions(etape)) {
+						if (!text.trim()) errors.push(`${place(lang)} : étape ${n + 1} vide`);
+					}
+				});
+			}
+			if (slide.chargement === undefined) errors.push(`${where} : etapes sans chargement`);
 		}
 		if (slide.chargement !== undefined) {
 			const seconds = slide.chargement;

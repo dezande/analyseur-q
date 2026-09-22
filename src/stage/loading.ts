@@ -1,12 +1,13 @@
 /*
- * Animation de la fausse barre de chargement (champ `chargement` d'une slide).
+ * Animation du faux chargement (champ `chargement` d'une slide) : cadran qui se remplit,
+ * pourcentage et étapes annoncées l'une après l'autre (champ `etapes`).
  * La courbe de progression est dans logic/loading.ts.
  *
  * Le temps ne s'écoule que quand la slide est vraiment visible : il s'arrête menu ouvert,
  * écran noir, ou app en arrière-plan, pour ne jamais changer de slide dans le dos de l'artiste.
  */
 
-import { LOADING, loadingProgress, percentLabel } from '../logic/loading.ts';
+import { LOADING, loadingProgress, percentLabel, stepIndex } from '../logic/loading.ts';
 import { $ } from '../kit/web/dom.ts';
 
 const menu = $('#menu');
@@ -31,23 +32,40 @@ export function stopLoading(): void {
 
 const isPaused = (): boolean => !menu.hidden || !black.hidden || document.visibilityState !== 'visible';
 
-/** Lance le chargement de `section` depuis 0 ; `onDone` est appelé à 100 %, après une courte pause. */
-export function startLoading(section: HTMLElement, seconds: number, onDone: () => void): void {
+/**
+ * Lance le chargement de `section` depuis 0 ; `onDone` est appelé à 100 %, après une courte pause.
+ * `steps` : les étapes à annoncer sous le cadran, dans l'ordre (vide s'il n'y en a pas).
+ */
+export function startLoading(section: HTMLElement, seconds: number, steps: readonly string[], onDone: () => void): void {
 	stopLoading();
-	const bar = section.querySelector<HTMLElement>('.chargement-bar');
+	const dial = section.querySelector<HTMLElement>('.chargement-cadran');
+	const arc = section.querySelector<SVGCircleElement>('.chargement-arc');
 	const percent = section.querySelector<HTMLElement>('.chargement-pourcent');
-	if (!bar || !percent) return;
+	const step = section.querySelector<HTMLElement>('.chargement-etape');
+	if (!dial || !arc || !percent) return;
 
 	const durationMs = seconds * 1000;
 	let elapsed = 0;
 	let last = performance.now();
+	let shownStep = -1;
 
 	const draw = (): void => {
 		const progress = loadingProgress(elapsed / durationMs);
-		bar.style.transform = `scaleX(${progress})`;
+		// L'anneau se règle en pour-cent (pathLength = 100), le camembert par --part.
+		arc.style.strokeDasharray = `${progress * 100} 100`;
+		dial.style.setProperty('--part', `${progress * 100}%`);
 		// Le texte ne change qu'une centaine de fois : inutile de le réécrire à chaque image.
 		const label = percentLabel(progress);
 		if (percent.textContent !== label) percent.textContent = label;
+		const index = stepIndex(progress, steps.length);
+		if (step && index !== shownStep) {
+			shownStep = index;
+			step.textContent = steps[index] ?? '';
+			// Relance le fondu d'apparition de la nouvelle étape.
+			step.classList.remove('apparait');
+			void step.offsetWidth;
+			step.classList.add('apparait');
+		}
 	};
 
 	const tick = (now: number): void => {

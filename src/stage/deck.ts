@@ -16,6 +16,8 @@ import '../kit/web/orientation.ts';
 import { isPointerDown } from './input.ts';
 import { startLoading, stopLoading } from './loading.ts';
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
 const deckEl = $('#deck');
 const noteEl = $('#note');
 const blackEl = $('#black');
@@ -103,14 +105,16 @@ function buildSlide(slide: Slide, i: number): HTMLElement {
 	if (slide.chargement !== undefined) {
 		const loading = body.appendChild(document.createElement('div'));
 		loading.className = 'chargement';
-		// Avec un bouton, la barre n'apparaît qu'à l'appui.
+		// Avec un bouton, le cadran n'apparaît qu'à l'appui.
 		loading.hidden = Boolean(bouton);
-		const track = loading.appendChild(document.createElement('div'));
-		track.className = 'chargement-piste';
-		track.appendChild(document.createElement('div')).className = 'chargement-bar';
-		const percent = loading.appendChild(document.createElement('div'));
-		percent.className = 'chargement-pourcent';
-		percent.textContent = '0 %';
+		loading.append(buildCadran());
+		if (slide.etapes?.length) {
+			const step = loading.appendChild(document.createElement('p'));
+			step.className = 'chargement-etape';
+			// Remplie par stage/loading.ts au fil de la progression ; la place est réservée dès
+			// maintenant (ajustement du texte) avec l'étape la plus longue.
+			step.textContent = slide.etapes.map((etape) => t(etape, lang) ?? '').reduce((a, b) => (b.length > a.length ? b : a), '');
+		}
 		const termine = t(slide.termine, lang);
 		if (termine) {
 			const done = loading.appendChild(document.createElement('p'));
@@ -164,6 +168,33 @@ function buildAll(): void {
 
 // Langue changée depuis la première slide : tout le texte des slides est à refaire.
 onLangChange(buildAll);
+
+/**
+ * Cadran de chargement : un camembert qui se remplit (--part, posé par stage/loading.ts),
+ * l'anneau de progression par-dessus (stroke-dasharray) et le pourcentage au centre.
+ */
+function buildCadran(): HTMLElement {
+	const dial = document.createElement('div');
+	dial.className = 'chargement-cadran';
+	const svg = document.createElementNS(SVG_NS, 'svg');
+	svg.setAttribute('viewBox', '0 0 100 100');
+	svg.setAttribute('aria-hidden', 'true');
+	for (const className of ['chargement-piste', 'chargement-arc']) {
+		const circle = document.createElementNS(SVG_NS, 'circle');
+		circle.setAttribute('class', className);
+		circle.setAttribute('cx', '50');
+		circle.setAttribute('cy', '50');
+		circle.setAttribute('r', '44');
+		// Longueur ramenée à 100 : l'arc se règle en pour-cent, quel que soit le rayon.
+		circle.setAttribute('pathLength', '100');
+		svg.appendChild(circle);
+	}
+	dial.appendChild(svg);
+	const percent = dial.appendChild(document.createElement('div'));
+	percent.className = 'chargement-pourcent';
+	percent.textContent = '0 %';
+	return dial;
+}
 
 /*
  * Fenêtre d'affichage : seules la slide courante et ses deux voisines sont rendues (les voisines,
@@ -274,10 +305,16 @@ function launch(i: number): void {
 	}
 	const done = slideEls[i].querySelector<HTMLElement>('.chargement-termine');
 	if (done) done.hidden = true;
-	startLoading(slideEls[i], slide.chargement, () => {
+	const step = slideEls[i].querySelector<HTMLElement>('.chargement-etape');
+	if (step) step.hidden = false;
+	const steps = (slide.etapes ?? []).map((etape) => t(etape, langue()) ?? '');
+	startLoading(slideEls[i], slide.chargement, steps, () => {
 		if (index !== i) return;
-		if (done) done.hidden = false;
-		else goTo(destination(i));
+		if (done) {
+			// La slide reste affichée avec son message : les étapes ont fini leur travail.
+			if (step) step.hidden = true;
+			done.hidden = false;
+		} else goTo(destination(i));
 	});
 }
 
