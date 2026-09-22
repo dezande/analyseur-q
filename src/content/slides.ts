@@ -1,13 +1,19 @@
 /*
  * LE CONTENU DU DIAPORAMA : une entrée par slide, dans l'ordre.
  *
+ * DEUX LANGUES. Chaque champ de texte s'écrit soit une seule fois (le même dans les deux langues :
+ * un nombre, le nom de l'app), soit une fois par langue : { fr: '…', en: '…' }. Une traduction
+ * oubliée ou vide fait échouer npm test. Le texte du menu, lui, est dans interface.ts.
+ * La langue se choisit sur la première slide (boutons FR / EN) et reste enregistrée.
+ *
  * Champs (tous facultatifs, au moins un parmi titre, grand, texte, image, chargement, bouton) :
  *   etiquette  petite étiquette orange, toujours au même endroit en haut, ex. 'Résultat'
  *   titre  en haut de la slide ; **titre** entre doubles astérisques : en orange
  *   grand  un mot ou un nombre en très grand
  *   texte  texte courant ; retour à la ligne conservé, ligne vide = nouveau paragraphe,
  *          **mots** entre doubles astérisques = mis en valeur ; plus grand sans titre ni grand
- *   image  fichier placé dans public/images/, ex. 'images/carte.png'
+ *   image  fichier placé dans public/images/, ex. 'images/carte.png' ; une image par langue
+ *          si elle porte du texte (les figures : R D V en français, K Q J en anglais)
  *   chargement  fausse barre de chargement de cette durée en secondes (1 à 120) ;
  *          à 100 %, passe seule à la slide suivante (sauf avec un message termine)
  *   termine message affiché sous la barre à 100 %, ex. 'Analyse quantique terminée' ;
@@ -19,8 +25,8 @@
  *   note   note pour l'artiste, visible seulement si « Afficher les notes » est activé
  *
  * Le texte s'adapte tout seul à la taille de l'écran. Une erreur (slide vide, image absente,
- * champ mal orthographié, chargement sur la dernière slide) fait échouer npm test,
- * donc rien de cassé n'est publié.
+ * champ mal orthographié, traduction manquante, chargement sur la dernière slide) fait échouer
+ * npm test, donc rien de cassé n'est publié.
  *
  * Slides d'exemple ci-dessous : à remplacer par le texte de la routine.
  */
@@ -31,66 +37,90 @@ export const SLIDES: readonly Slide[] = [
 	{
 		titre: '**Analyseur Q**',
 		image: 'images/logo.svg',
-		texte: 'Modèle AQ-52',
-		note: 'Tap à droite ou glisser vers la gauche pour avancer.',
+		texte: { fr: 'Modèle AQ-52', en: 'Model AQ-52' },
+		note: {
+			fr: 'Tap à droite ou glisser vers la gauche pour avancer. La langue se choisit en haut à droite.',
+			en: 'Tap the right side or swipe left to advance. The language is chosen at the top right.',
+		},
 	},
 	{
 		titre: 'Calibration',
-		texte: 'Posez le téléphone\nsur le jeu.',
-		bouton: 'Lancer l\'analyse',
-		note: 'Appuyer sur le bouton pour lancer l\'analyse (slide suivante).',
+		texte: { fr: 'Posez le téléphone\nsur le jeu.', en: 'Place the phone\non the deck.' },
+		bouton: { fr: 'Lancer l\'analyse', en: 'Start the analysis' },
+		note: {
+			fr: 'Appuyer sur le bouton pour lancer l\'analyse (slide suivante).',
+			en: 'Press the button to start the analysis (next slide).',
+		},
 	},
 	{
-		titre: 'Analyse en cours',
+		titre: { fr: 'Analyse en cours', en: 'Analysis in progress' },
 		chargement: 6,
-		note: 'La barre démarre à l\'arrivée sur la slide ; à 100 %, passe seule à la slide suivante.',
+		note: {
+			fr: 'La barre démarre à l\'arrivée sur la slide ; à 100 %, passe seule à la slide suivante.',
+			en: 'The bar starts on arriving at the slide; at 100 %, it moves on by itself.',
+		},
 	},
 	{
-		titre: 'Analyse quantique terminée',
-		bouton: 'Voir les résultats',
-		note: 'Appuyer sur le bouton pour afficher les résultats.',
+		titre: { fr: 'Analyse quantique terminée', en: 'Quantum analysis complete' },
+		bouton: { fr: 'Voir les résultats', en: 'See the results' },
+		note: {
+			fr: 'Appuyer sur le bouton pour afficher les résultats.',
+			en: 'Press the button to show the results.',
+		},
 	},
 	{
-		etiquette: 'Résultat',
+		etiquette: { fr: 'Résultat', en: 'Result' },
 		grand: '24',
-		texte: 'cartes face en bas',
+		texte: { fr: 'cartes face en bas', en: 'cards face down' },
 	},
 	{
-		etiquette: 'Résultat',
+		etiquette: { fr: 'Résultat', en: 'Result' },
 		grand: '13',
-		texte: 'cartes rouges',
+		texte: { fr: 'cartes rouges', en: 'red cards' },
 	},
 	{
-		etiquette: 'Résultat',
-		image: 'images/royal-flush-coeur.svg',
-		texte: 'On peut faire un **royal flush à cœur**',
+		etiquette: { fr: 'Résultat', en: 'Result' },
+		image: { fr: 'images/royal-flush-coeur.svg', en: 'images/royal-flush-coeur-en.svg' },
+		texte: {
+			fr: 'On peut faire un **royal flush à cœur**',
+			en: 'You can make a **royal flush in hearts**',
+		},
 	},
 	{
-		etiquette: 'Résultat',
+		etiquette: { fr: 'Résultat', en: 'Result' },
 		image: 'images/carreau.svg',
-		texte: 'Les autres cartes rouges sont des **carreaux**.',
+		texte: {
+			fr: 'Les autres cartes rouges sont des **carreaux**.',
+			en: 'The other red cards are **diamonds**.',
+		},
 	},
 	{
-		etiquette: 'Résultat',
-		image: 'images/figure-barree.svg',
-		texte: 'Les cartes noires sont toutes des **cartes à points** : aucune figure.',
+		etiquette: { fr: 'Résultat', en: 'Result' },
+		image: { fr: 'images/figure-barree.svg', en: 'images/figure-barree-en.svg' },
+		texte: {
+			fr: 'Les cartes noires sont toutes des **cartes à points** : aucune figure.',
+			en: 'The black cards are all **spot cards**: no court cards.',
+		},
 	},
 	{
-		etiquette: 'Résultat',
+		etiquette: { fr: 'Résultat', en: 'Result' },
 		image: 'images/cartes-paires.svg',
-		texte: 'Ce sont toutes des cartes paires...',
+		texte: { fr: 'Ce sont toutes des cartes paires...', en: 'They are all even cards...' },
 	},
 	{
-		etiquette: 'Résultat',
+		etiquette: { fr: 'Résultat', en: 'Result' },
 		image: 'images/3-de-pique.svg',
-		texte: 'sauf le **3 de pique**',
+		texte: { fr: 'sauf le **3 de pique**', en: 'except the **3 of spades**' },
 	},
 	{
-		titre: '**Merci**',
+		titre: { fr: '**Merci**', en: '**Thank you**' },
 		image: 'images/logo.svg',
-		texte: 'd\'avoir utilisé l\'Analyseur Q',
-		bouton: 'Recommencer',
+		texte: { fr: 'd\'avoir utilisé l\'Analyseur Q', en: 'for using the Analyseur Q' },
+		bouton: { fr: 'Recommencer', en: 'Start over' },
 		boutonVers: 1,
-		note: 'Le bouton revient à la première slide (un tap à droite ne le déclenche pas).',
+		note: {
+			fr: 'Le bouton revient à la première slide (un tap à droite ne le déclenche pas).',
+			en: 'The button goes back to the first slide (a tap on the right does not trigger it).',
+		},
 	},
 ];

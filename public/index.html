@@ -11,7 +11,7 @@
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 	<meta name="apple-mobile-web-app-title" content="Analyseur Q">
 	<meta name="format-detection" content="telephone=no">
-	<meta name="description" content="Analyseur d'ondes quantiques des cartes à jouer, modèle AQ-52">
+	<meta name="description" content="Analyseur d'ondes quantiques des cartes à jouer, modèle AQ-52 — quantum wave analyser for playing cards, model AQ-52">
 	<title>Analyseur Q</title>
 	<link rel="manifest" href="manifest.json">
 	<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -19,6 +19,11 @@
 	<link rel="stylesheet" href="style.css">
 </head>
 <body>
+	<!--
+		Le texte de l'interface n'est pas écrit ici : chaque élément porte une clé
+		(data-texte, data-texte-label) remplie dans les deux langues depuis
+		src/content/interface.ts (src/settings/langue.ts).
+	-->
 	<!-- Toute l'app : pivote en paysage pour rester en portrait (src/system/orientation.ts). -->
 	<div id="app">
 		<main id="stage" aria-live="polite">
@@ -34,66 +39,66 @@
 			<span class="graduations gauche"></span>
 			<span class="graduations droite"></span>
 			<span class="repere haut">Analyseur Q · AQ-52</span>
-			<span class="repere bas"><i></i>Mesure quantique</span>
+			<span class="repere bas"><i></i><span data-texte="cadre.mesure"></span></span>
 		</div>
 		<div id="note" hidden></div>
 		<div id="hold-ring" aria-hidden="true" hidden><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="44"/><circle class="fill" cx="50" cy="50" r="44" pathLength="100"/></svg></div>
 		<div id="black" hidden></div>
 
-		<section id="menu" hidden aria-label="Menu">
+		<section id="menu" hidden data-texte-label="menu.titre">
 			<div class="sheet">
 				<header class="menu-head">
 					<div>
-						<h1>Menu</h1>
+						<h1 data-texte="menu.titre"></h1>
 						<p class="menu-version" id="menu-version"></p>
 					</div>
 					<span id="menu-position"></span>
 				</header>
 
 				<div class="card">
-					<div class="row-label">Aller à la slide</div>
+					<div class="row-label" data-texte="menu.aller"></div>
 					<div id="slide-list" class="slide-list"></div>
 				</div>
 
 				<div class="actions">
-					<button type="button" id="restart-btn">Recommencer au début</button>
-					<button type="button" id="close-btn" class="primary">Fermer</button>
+					<button type="button" id="restart-btn" data-texte="menu.recommencer"></button>
+					<button type="button" id="close-btn" class="primary" data-texte="menu.fermer"></button>
 				</div>
 
 				<div class="card">
-					<div class="row-label">Transition</div>
-					<div class="seg" id="transition-seg" role="radiogroup" aria-label="Transition"></div>
+					<div class="row-label" data-texte="menu.transition"></div>
+					<div class="seg" id="transition-seg" role="radiogroup" data-texte-label="menu.transition"></div>
 				</div>
 
 				<div class="card options">
-					<p class="hint">Aides visuelles : à masquer avant de jouer si le public voit l'écran.</p>
-							<label class="toggle-row" for="show-notes">Notes pour l'artiste <input id="show-notes" type="checkbox"></label>
-					<label class="toggle-row" for="show-hold-ring">Jauge de l'appui long <input id="show-hold-ring" type="checkbox"></label>
+					<p class="hint" data-texte="menu.aides"></p>
+					<label class="toggle-row" for="show-notes"><span data-texte="menu.notes"></span> <input id="show-notes" type="checkbox"></label>
+					<label class="toggle-row" for="show-hold-ring"><span data-texte="menu.jauge"></span> <input id="show-hold-ring" type="checkbox"></label>
 				</div>
 
 				<div class="card status">
 					<span class="dot" id="wake-dot"></span>
-					<div><span id="wake-text">Écran : verrou inactif</span><small id="wake-detail"></small></div>
+					<div><span id="wake-text"></span><small id="wake-detail"></small></div>
 				</div>
 
 				<div class="card about">
-					<div class="about-row">Version <span id="about-version"></span></div>
-					<div class="about-row">Cache hors-ligne <span id="about-cache"></span></div>
-					<div class="about-row">Stockage <span id="about-storage"></span></div>
-					<div class="about-row">Affichage <span id="about-display"></span></div>
+					<div class="about-row"><span data-texte="menu.version"></span> <span id="about-version"></span></div>
+					<div class="about-row"><span data-texte="menu.cache"></span> <span id="about-cache"></span></div>
+					<div class="about-row"><span data-texte="menu.stockage"></span> <span id="about-storage"></span></div>
+					<div class="about-row"><span data-texte="menu.affichage"></span> <span id="about-display"></span></div>
 				</div>
 
 				<details class="card help">
-					<summary>Gestes et touches</summary>
+					<summary data-texte="aide.titre"></summary>
 					<ul>
-						<li>Tap sur la droite de l'écran, ou glisser vers la gauche : slide suivante.</li>
-						<li>Tap sur le tiers gauche, ou glisser vers la droite : slide précédente.</li>
-						<li>Appui de 3 s n'importe où : ce menu.</li>
-						<li>Clavier ou télécommande : → espace Page suivante pour avancer, ← Page précédente pour reculer, Échap ou M pour le menu, B pour l'écran noir.</li>
+						<li data-texte="aide.tapDroite"></li>
+						<li data-texte="aide.tapGauche"></li>
+						<li data-texte="aide.appui"></li>
+						<li data-texte="aide.clavier"></li>
 					</ul>
 				</details>
 
-				<button type="button" id="defaults-btn" class="link">Rétablir les réglages par défaut</button>
+				<button type="button" id="defaults-btn" class="link" data-texte="menu.defauts"></button>
 			</div>
 		</section>
 	</div>

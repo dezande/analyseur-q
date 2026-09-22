@@ -3,9 +3,12 @@
  * ajustement du texte à l'écran, fausse barre de chargement, note et écran noir.
  */
 
+import { ui } from '../content/interface.ts';
 import { SLIDES } from '../content/slides.ts';
 import { applyMove, clampIndex, counterLabel, type Move } from '../logic/deck.ts';
+import { LANGS, t } from '../logic/i18n.ts';
 import { paragraphs, parseInline, type Slide } from '../logic/slides.ts';
+import { langue, onLangChange, setLangue } from '../settings/langue.ts';
 import { loadPosition, settings, storePosition } from '../settings/store.ts';
 import { $ } from '../kit/web/dom.ts';
 // Rotation calculée avant le premier ajustement du texte.
@@ -35,6 +38,7 @@ function appendLine(parent: HTMLElement, line: string): void {
 }
 
 function buildSlide(slide: Slide, i: number): HTMLElement {
+	const lang = langue();
 	const section = document.createElement('section');
 	// Hors de la fenêtre d'affichage tant que render() ne l'y a pas mise.
 	section.className = 'slide far';
@@ -44,20 +48,23 @@ function buildSlide(slide: Slide, i: number): HTMLElement {
 	const body = section.appendChild(document.createElement('div'));
 	body.className = 'slide-body';
 
-	if (slide.etiquette) {
+	const etiquette = t(slide.etiquette, lang);
+	if (etiquette) {
 		const label = body.appendChild(document.createElement('p'));
 		label.className = 'etiquette';
-		appendLine(label, slide.etiquette);
+		appendLine(label, etiquette);
 	}
-	if (slide.titre) {
+	const titre = t(slide.titre, lang);
+	if (titre) {
 		const h = body.appendChild(document.createElement('h1'));
 		h.className = 'titre';
-		appendLine(h, slide.titre);
+		appendLine(h, titre);
 	}
-	if (slide.image) {
+	const image = t(slide.image, lang);
+	if (image) {
 		const img = body.appendChild(document.createElement('img'));
 		img.className = 'image';
-		img.src = slide.image;
+		img.src = image;
 		img.alt = '';
 		img.decoding = 'async';
 		img.addEventListener('load', () => {
@@ -65,15 +72,17 @@ function buildSlide(slide: Slide, i: number): HTMLElement {
 			else refitSection(section);
 		});
 	}
-	if (slide.grand) {
+	const grand = t(slide.grand, lang);
+	if (grand) {
 		const big = body.appendChild(document.createElement('p'));
 		big.className = 'grand';
-		appendLine(big, slide.grand);
+		appendLine(big, grand);
 	}
-	if (slide.texte) {
+	const texte = t(slide.texte, lang);
+	if (texte) {
 		const text = body.appendChild(document.createElement('div'));
 		text.className = 'texte';
-		for (const lines of paragraphs(slide.texte)) {
+		for (const lines of paragraphs(texte)) {
 			const p = text.appendChild(document.createElement('p'));
 			lines.forEach((line, n) => {
 				if (n > 0) p.append(document.createElement('br'));
@@ -81,11 +90,12 @@ function buildSlide(slide: Slide, i: number): HTMLElement {
 			});
 		}
 	}
-	if (slide.bouton) {
+	const bouton = t(slide.bouton, lang);
+	if (bouton) {
 		const button = body.appendChild(document.createElement('button'));
 		button.type = 'button';
 		button.className = 'bouton';
-		button.textContent = slide.bouton;
+		button.textContent = bouton;
 		button.addEventListener('click', () => {
 			if (Number(section.dataset.index) === index) pressButton();
 		});
@@ -94,25 +104,66 @@ function buildSlide(slide: Slide, i: number): HTMLElement {
 		const loading = body.appendChild(document.createElement('div'));
 		loading.className = 'chargement';
 		// Avec un bouton, la barre n'apparaît qu'à l'appui.
-		loading.hidden = Boolean(slide.bouton);
+		loading.hidden = Boolean(bouton);
 		const track = loading.appendChild(document.createElement('div'));
 		track.className = 'chargement-piste';
 		track.appendChild(document.createElement('div')).className = 'chargement-bar';
 		const percent = loading.appendChild(document.createElement('div'));
 		percent.className = 'chargement-pourcent';
 		percent.textContent = '0 %';
-		if (slide.termine) {
+		const termine = t(slide.termine, lang);
+		if (termine) {
 			const done = loading.appendChild(document.createElement('p'));
 			done.className = 'chargement-termine';
 			done.hidden = true;
-			appendLine(done, slide.termine);
+			appendLine(done, termine);
 		}
 	}
+	// Choix de la langue : sur la première slide seulement, hors du corps de la slide pour ne pas
+	// entrer dans l'ajustement du texte (comme l'étiquette).
+	if (i === 0) section.appendChild(buildLangues());
 	return section;
 }
 
-const slideEls = SLIDES.map(buildSlide);
-deckEl.replaceChildren(...slideEls);
+/**
+ * Deux petits boutons FR / EN au bas de la première slide : la langue des slides et du menu
+ * se choisit là, avant de commencer, et le choix est enregistré (settings/langue.ts).
+ * Les touchers sur ces boutons ne sont pas des gestes du diaporama (stage/input.ts).
+ */
+function buildLangues(): HTMLElement {
+	const lang = langue();
+	const box = document.createElement('div');
+	box.className = 'langues';
+	box.setAttribute('role', 'radiogroup');
+	box.setAttribute('aria-label', ui('menu.langue', lang));
+	for (const choix of LANGS) {
+		const button = box.appendChild(document.createElement('button'));
+		button.type = 'button';
+		button.setAttribute('role', 'radio');
+		button.setAttribute('aria-checked', String(choix === lang));
+		button.dataset.langue = choix;
+		button.textContent = choix.toUpperCase();
+		button.addEventListener('click', () => setLangue(choix));
+	}
+	return box;
+}
+
+/** Les slides construites, dans l'ordre. Reconstruites en bloc à chaque changement de langue. */
+let slideEls: HTMLElement[] = [];
+
+/** (Re)construit toutes les slides dans la langue en cours et réaffiche la slide courante. */
+function buildAll(): void {
+	stopLoading();
+	slideEls = SLIDES.map(buildSlide);
+	deckEl.replaceChildren(...slideEls);
+	fitted.clear();
+	rendered = [];
+	preparedIndex = -1;
+	render();
+}
+
+// Langue changée depuis la première slide : tout le texte des slides est à refaire.
+onLangChange(buildAll);
 
 /*
  * Fenêtre d'affichage : seules la slide courante et ses deux voisines sont rendues (les voisines,
@@ -284,7 +335,7 @@ function render(): void {
 	}
 	rendered = next;
 	for (const i of next) ensureFit(slideEls[i]);
-	const note = SLIDES[index]?.note ?? '';
+	const note = t(SLIDES[index]?.note, langue()) ?? '';
 	noteEl.textContent = note;
 	noteEl.hidden = !settings.showNotes || !note;
 	syncSlideActions();
@@ -332,5 +383,6 @@ export function applyDisplaySettings(): void {
 
 // Sans transition au démarrage : la slide reprise apparaît directement.
 deckEl.classList.add('no-anim');
+buildAll();
 applyDisplaySettings();
 requestAnimationFrame(() => requestAnimationFrame(() => deckEl.classList.remove('no-anim')));

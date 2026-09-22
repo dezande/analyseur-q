@@ -10,6 +10,7 @@
  */
 
 import { readStored, writeStored } from '../kit/web/storage.ts';
+import { deviceLang } from '../logic/i18n.ts';
 import { sanitizeSettings, type Settings } from '../logic/settings.ts';
 
 const SETTINGS_KEY = 'analyseur-q:settings:v1';
@@ -18,14 +19,21 @@ const POSITION_KEY = 'analyseur-q:position:v1';
 const LEGACY_SETTINGS_KEY = 'rain-man:settings:v1';
 
 /**
+ * Langue de départ, tant qu'aucune n'a été choisie : celle du téléphone (anglais s'il est en
+ * anglais, français sinon). Le choix fait dans l'app est ensuite enregistré comme les autres
+ * réglages, et « Rétablir les réglages par défaut » revient à la langue du téléphone.
+ */
+const DEFAULT_LANG = deviceLang(navigator.languages);
+
+/**
  * Réglages en cours. Les autres modules lisent ce binding (toujours à jour) et peuvent modifier
  * ses champs, puis appellent storeSettings() pour valider et enregistrer.
  */
-export let settings: Settings = sanitizeSettings(readStored(SETTINGS_KEY, LEGACY_SETTINGS_KEY));
+export let settings: Settings = sanitizeSettings(readStored(SETTINGS_KEY, LEGACY_SETTINGS_KEY), DEFAULT_LANG);
 
 /** Valide et enregistre les réglages. Avec `null` : rétablit les réglages par défaut. */
 export function storeSettings(next: unknown = settings): void {
-	settings = sanitizeSettings(next);
+	settings = sanitizeSettings(next, DEFAULT_LANG);
 	writeStored(SETTINGS_KEY, settings);
 }
 

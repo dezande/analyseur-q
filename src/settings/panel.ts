@@ -3,16 +3,18 @@
  * aller à une slide, réglages d'affichage, état de l'écran et version.
  */
 
+import { ui, type CleInterface } from '../content/interface.ts';
 import { SLIDES } from '../content/slides.ts';
 import { BUILD } from '../kit/web/build.ts';
 import { $ } from '../kit/web/dom.ts';
-import { requestPersistentStorage } from '../kit/web/storage.ts';
+import { requestPersistentStorage, type StorageState } from '../kit/web/storage.ts';
 import { appCacheNames } from '../kit/web/updates.ts';
-import { describeWake, onWakeChange } from '../kit/web/wake-lock.ts';
+import { onWakeChange, type WakeState } from '../kit/web/wake-lock.ts';
 import { counterLabel } from '../logic/deck.ts';
 import { TRANSITIONS, type Settings } from '../logic/settings.ts';
 import { slideLabel } from '../logic/slides.ts';
 import { applyDisplaySettings, currentIndex, goTo, slideCount } from '../stage/deck.ts';
+import { langue, onLangChange } from './langue.ts';
 import { settings, storeSettings } from './store.ts';
 
 const menu = $('#menu');
@@ -28,19 +30,25 @@ export const isMenuOpen = (): boolean => !menu.hidden;
 
 /* ---------- Liste des slides ---------- */
 
-for (let i = 0; i < slideCount; i++) {
-	const button = list.appendChild(document.createElement('button'));
-	button.type = 'button';
-	button.dataset.index = String(i);
-	const number = button.appendChild(document.createElement('span'));
-	number.className = 'num';
-	number.textContent = String(i + 1);
-	button.append(slideLabel(SLIDES[i]));
-	button.addEventListener('click', () => {
-		goTo(i);
-		closeMenu();
-	});
+/** Liste « Aller à la slide », avec le titre court de chaque slide dans la langue en cours. */
+function buildList(): void {
+	const lang = langue();
+	list.replaceChildren();
+	for (let i = 0; i < slideCount; i++) {
+		const button = list.appendChild(document.createElement('button'));
+		button.type = 'button';
+		button.dataset.index = String(i);
+		const number = button.appendChild(document.createElement('span'));
+		number.className = 'num';
+		number.textContent = String(i + 1);
+		button.append(slideLabel(SLIDES[i], lang));
+		button.addEventListener('click', () => {
+			goTo(i);
+			closeMenu();
+		});
+	}
 }
+buildList();
 
 /* ---------- Affichage du menu ---------- */
 
@@ -59,16 +67,24 @@ function refresh(): void {
 		if (isCurrent) button.setAttribute('aria-current', 'true');
 		else button.removeAttribute('aria-current');
 	}
+	const lang = langue();
 	$('#menu-position').textContent = counterLabel(current, slideCount);
-	$('#menu-version').textContent = `Version ${BUILD.version}`;
+	$('#menu-version').textContent = `${ui('menu.version', lang)} ${BUILD.version}`;
 	$('#about-version').textContent = `${BUILD.version} (${BUILD.commit})`;
 	void showCache();
 	void requestPersistentStorage().then((state) => {
-		$('#about-storage').textContent = state;
+		$('#about-storage').textContent = ui(STORAGE_TEXTS[state], langue());
 	});
 	const standalone = matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || (navigator as { standalone?: boolean }).standalone === true;
-	$('#about-display').textContent = standalone ? 'app installée' : 'navigateur';
+	$('#about-display').textContent = ui(standalone ? 'etat.installee' : 'etat.navigateur', lang);
 }
+
+/** État du stockage persistant (kit/web/storage.ts) → texte du menu. */
+const STORAGE_TEXTS: Record<StorageState, CleInterface> = {
+	'persistant': 'etat.persistant',
+	'non garanti': 'etat.nonGaranti',
+	'inconnu': 'etat.inconnu',
+};
 
 /**
  * Nom du cache hors-ligne (analyseur-q-<empreinte>). L'empreinte change à chaque nouvelle version :
@@ -76,16 +92,26 @@ function refresh(): void {
  */
 async function showCache(): Promise<void> {
 	const names = await appCacheNames('analyseur-q');
-	$('#about-cache').textContent = names.length === 0 ? 'inactif' : names.join(', ');
+	$('#about-cache').textContent = names.length === 0 ? ui('etat.cacheInactif', langue()) : names.join(', ');
 }
 
-// État du maintien de l'écran allumé (kit/web/wake-lock.ts).
-onWakeChange((state) => {
-	const wake = describeWake(state);
+/*
+ * État du maintien de l'écran allumé (kit/web/wake-lock.ts donne l'état, le texte est traduit ici
+ * plutôt que repris du kit, qui ne parle que français).
+ */
+let lastWake: WakeState = { lock: false, video: false };
+
+function showWake(state: WakeState): void {
+	const lang = langue();
+	lastWake = state;
+	const active = state.lock || state.video;
 	$('#wake-dot').className = `dot ${state.lock ? 'lock' : state.video ? 'video' : 'off'}`;
-	$('#wake-text').textContent = wake.text;
-	$('#wake-detail').textContent = wake.detail;
-});
+	$('#wake-text').textContent = ui(active ? 'ecran.actif' : 'ecran.inactif', lang);
+	const detail: CleInterface = state.lock && state.video ? 'ecran.lockVideo' : state.lock ? 'ecran.lock' : state.video ? 'ecran.video' : 'ecran.rien';
+	$('#wake-detail').textContent = ui(detail, lang);
+}
+
+onWakeChange(showWake);
 
 /**
  * Clics ignorés dans le menu jusqu'à cet instant (performance.now()). Le doigt de l'appui long
@@ -137,14 +163,29 @@ for (const [key, selector] of Object.entries(TOGGLES) as [Toggle, string][]) {
 }
 
 const seg = $('#transition-seg');
-for (const transition of TRANSITIONS) {
-	const button = seg.appendChild(document.createElement('button'));
-	button.type = 'button';
-	button.setAttribute('role', 'radio');
-	button.dataset.transition = transition;
-	button.textContent = transition[0].toUpperCase() + transition.slice(1);
-	button.addEventListener('click', () => update({ transition }));
+
+/** Boutons de transition, avec leur nom dans la langue en cours (la valeur enregistrée ne change pas). */
+function buildTransitions(): void {
+	const lang = langue();
+	seg.replaceChildren();
+	for (const transition of TRANSITIONS) {
+		const button = seg.appendChild(document.createElement('button'));
+		button.type = 'button';
+		button.setAttribute('role', 'radio');
+		button.dataset.transition = transition;
+		button.textContent = ui(`transition.${transition}`, lang);
+		button.addEventListener('click', () => update({ transition }));
+	}
 }
+buildTransitions();
+
+// Langue changée depuis la première slide : le menu porte du texte construit ici.
+onLangChange(() => {
+	buildList();
+	buildTransitions();
+	showWake(lastWake);
+	if (isMenuOpen()) refresh();
+});
 
 $('#restart-btn').addEventListener('click', () => {
 	goTo(0);

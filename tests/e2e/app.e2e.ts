@@ -13,6 +13,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { Browser, SCREEN, type Page, type Point } from '../../src/kit/node/chrome.ts';
 import { startStaticServer, type StaticServer } from '../../src/kit/node/static-server.ts';
 import { SLIDES } from '../../src/content/slides.ts';
+import { t } from '../../src/logic/i18n.ts';
 import {
 	CENTER, click, current, doneMessage, expectSlide, isBlack, isMenuOpen, LEFT, LEGACY_POSITION_KEY, LEGACY_SETTINGS_KEY, openApp,
 	OVERFLOWING, percent, POSITION_KEY, pressKey, RIGHT, SETTINGS_KEY, swipe, TEST_TIMEOUT, text, turnPhone,
@@ -31,7 +32,9 @@ before(async () => {
 	if (COUNT < 3) throw new Error('Ces tests ont besoin d\'au moins 3 slides.');
 	if (PLAIN < 0) throw new Error('Ces tests ont besoin de deux slides simples qui se suivent (ni bouton ni chargement).');
 	server = await startStaticServer('dist', 0);
-	browser = await Browser.launch();
+	// Chrome en français : l'app suit la langue du téléphone tant qu'aucune n'a été choisie
+	// (logic/i18n.ts), et ces tests lisent les textes français.
+	browser = await Browser.launch(['--lang=fr-FR']);
 });
 
 after(async () => {
@@ -79,6 +82,70 @@ test('nouvelle ouverture : première slide, même avec une position restée sur 
 		await page.reload();
 		await page.waitFor(`document.querySelector('.slide.current')`, 'redémarrage');
 		assert.equal(await current(page), 0);
+	});
+});
+
+/* ================= Langue ================= */
+
+/** Centre du bouton FR ou EN de la première slide (un vrai doigt, pas un clic). */
+const langueButton = (page: Page, lang: string): Promise<Point> =>
+	page.evaluate(`(() => { const r = document.querySelector('.slide.current .langues button[data-langue="${lang}"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
+
+/** Première slide dont l'image change avec la langue (figures : R D V / K Q J). */
+const IMAGE_PAR_LANGUE = SLIDES.findIndex((slide) => slide.image !== undefined && typeof slide.image !== 'string');
+
+test('langue : FR / EN sur la première slide change les slides, les images et le menu, sans changer de slide', TEST_TIMEOUT, async () => {
+	await withApp({}, async (page) => {
+		assert.equal(await page.evaluate(`document.documentElement.lang`), 'fr', 'Chrome en français');
+		const enFrancais = await text(page, '.slide.current .slide-body');
+
+		// Un vrai appui sur EN, en haut à droite : la langue change, la slide non (un tap à droite avancerait).
+		await page.tap(await langueButton(page, 'en'));
+		await page.waitFor(`document.documentElement.lang === 'en'`, 'app en anglais', 3000);
+		await sleep(400);
+		assert.equal(await current(page), 0, 'toujours la première slide');
+		assert.notEqual(await text(page, '.slide.current .slide-body'), enFrancais, 'texte traduit');
+		assert.equal(await page.evaluate(`JSON.parse(localStorage.getItem('${SETTINGS_KEY}')).langue`), 'en', 'choix enregistré');
+
+		// Le menu aussi, textes fixes comme titres de slides.
+		await pressKey(page, 'm');
+		assert.equal(await text(page, '#close-btn'), 'Close');
+		assert.equal(await text(page, '#restart-btn'), 'Start over');
+		assert.equal(await text(page, '#transition-seg button[data-transition="fondu"]'), 'Fade');
+		assert.match(await text(page, '#wake-text'), /^Screen: lock (active|inactive)$/);
+		assert.equal(await text(page, '#about-display'), 'browser');
+		await pressKey(page, 'm');
+
+		// Image traduite (les figures portent R D V en français, K Q J en anglais).
+		if (IMAGE_PAR_LANGUE >= 0) {
+			const image = SLIDES[IMAGE_PAR_LANGUE].image as { fr: string; en: string };
+			await click(page, `#slide-list button[data-index="${IMAGE_PAR_LANGUE}"]`);
+			await expectSlide(page, IMAGE_PAR_LANGUE);
+			assert.ok((await page.evaluate<string>(`document.querySelector('.slide.current img').src`)).endsWith(image.en), `image anglaise : ${image.en}`);
+		}
+
+		// La langue tient au rechargement, et le retour au français se fait pareil.
+		await page.reload();
+		await page.waitFor(`document.querySelector('.slide.current')`, 'redémarrage');
+		assert.equal(await page.evaluate(`document.documentElement.lang`), 'en');
+		await click(page, '#slide-list button[data-index="0"]');
+		await expectSlide(page, 0);
+		await page.tap(await langueButton(page, 'fr'));
+		await page.waitFor(`document.documentElement.lang === 'fr'`, 'retour au français', 3000);
+		assert.equal(await text(page, '.slide.current .slide-body'), enFrancais);
+	});
+});
+
+test('téléphone en anglais : l’app s’ouvre en anglais, tant qu’aucune langue n’a été choisie', TEST_TIMEOUT, async () => {
+	await withApp({}, async (page) => {
+		const agent = await page.evaluate<string>(`navigator.userAgent`);
+		await page.send('Emulation.setUserAgentOverride', { userAgent: agent, acceptLanguage: 'en-US,en' });
+		await page.evaluate(`localStorage.clear(); sessionStorage.clear();`);
+		await page.reload();
+		await page.waitFor(`document.querySelector('.slide.current')`, 'redémarrage');
+		assert.equal(await page.evaluate(`navigator.languages[0]`), 'en-US', 'téléphone en anglais');
+		assert.equal(await page.evaluate(`document.documentElement.lang`), 'en');
+		assert.equal(await text(page, '#close-btn'), 'Close');
 	});
 });
 
@@ -261,7 +328,7 @@ test('menu : aides visuelles et transition, appliquées et enregistrées', TEST_
 		await page.reload();
 		await page.waitFor(`document.querySelector('.slide.current')`, 'redémarrage');
 		assert.deepEqual(await page.evaluate(`JSON.parse(localStorage.getItem('${SETTINGS_KEY}'))`), {
-			transition: 'glisse', showNotes: false, showHoldRing: false,
+			langue: 'fr', transition: 'glisse', showNotes: false, showHoldRing: false,
 		});
 		assert.equal(await page.evaluate(`document.querySelector('#note').hidden`), true);
 
@@ -278,13 +345,14 @@ test('menu : aides visuelles et transition, appliquées et enregistrées', TEST_
 });
 
 test('ancien nom du projet : réglages de rain-man repris', TEST_TIMEOUT, async () => {
+	// Les réglages de rain-man ne connaissaient pas la langue : elle prend celle du téléphone.
 	const legacy = { transition: 'aucune', showNotes: false, showHoldRing: true };
 	await withApp({ [LEGACY_SETTINGS_KEY]: JSON.stringify(legacy) }, async (page) => {
 		assert.equal(await page.evaluate(`document.querySelector('#deck').dataset.transition`), 'aucune');
 		assert.equal(await page.evaluate(`document.querySelector('#note').hidden`), true);
 		// Au premier changement, tout est enregistré sous la nouvelle clé, anciens réglages compris.
 		await click(page, '#transition-seg button[data-transition="glisse"]');
-		assert.deepEqual(await page.evaluate(`JSON.parse(localStorage.getItem('${SETTINGS_KEY}'))`), { ...legacy, transition: 'glisse' });
+		assert.deepEqual(await page.evaluate(`JSON.parse(localStorage.getItem('${SETTINGS_KEY}'))`), { langue: 'fr', ...legacy, transition: 'glisse' });
 	});
 });
 
@@ -304,7 +372,7 @@ const LOADING_INDEX = SLIDES.findIndex((slide) => slide.chargement !== undefined
 const LOADING_MS = (SLIDES[LOADING_INDEX]?.chargement ?? 0) * 1000;
 const LOADING_TEST = { timeout: 60_000 + LOADING_MS * 3, skip: LOADING_INDEX < 0 && 'aucune slide avec chargement' };
 /** Slide de LOADING_INDEX : message à 100 % (la slide reste) ou passage automatique à la suivante. */
-const LOADING_MESSAGE = SLIDES[LOADING_INDEX]?.termine;
+const LOADING_MESSAGE = t(SLIDES[LOADING_INDEX]?.termine, 'fr');
 
 test('chargement : la barre avance, puis à 100 % le message s’affiche (ou la slide suivante)', LOADING_TEST, async () => {
 	await withApp({ [POSITION_KEY]: String(LOADING_INDEX) }, async (page) => {
@@ -563,7 +631,7 @@ async function waitForReload(page: Page, timeoutMs = 15_000): Promise<void> {
 const MENU_VERSION = `document.querySelector('#menu-version').textContent`;
 
 /** Réglages différents des valeurs par défaut, pour vérifier qu'une mise à jour les conserve. */
-const CUSTOM_SETTINGS = { transition: 'glisse', showNotes: false, showHoldRing: false };
+const CUSTOM_SETTINGS = { langue: 'fr', transition: 'glisse', showNotes: false, showHoldRing: false };
 
 async function expectCustomSettingsKept(page: Page): Promise<void> {
 	assert.deepEqual(await page.evaluate(`JSON.parse(localStorage.getItem('${SETTINGS_KEY}'))`), CUSTOM_SETTINGS, 'réglages enregistrés conservés');

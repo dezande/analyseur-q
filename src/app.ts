@@ -10,12 +10,13 @@
  *
  * Organisation de src/ :
  *   app.ts       ce fichier : démarrage et mises à jour automatiques
- *   content/     LE TEXTE DES SLIDES (slides.ts)
+ *   content/     LE TEXTE : slides.ts (les slides, en français et en anglais) et interface.ts (le menu)
  *   stage/       la scène
  *     deck.ts      construction et affichage des slides, ajustement du texte
  *     input.ts     gestes et clavier
- *   settings/    menu
+ *   settings/    menu et réglages
  *     store.ts     réglages enregistrés sur l'appareil, slide en cours gardée le temps de la session
+ *     langue.ts    français ou anglais : textes de l'interface, changement depuis la première slide
  *     panel.ts     menu : aller à une slide, réglages
  *   kit/         code commun des accessoires de scène (sous-module kit-scene, voir son README) :
  *                écran allumé, portrait, hors-ligne et mises à jour, stockage, version
@@ -25,6 +26,7 @@
  *     gestures.ts    décision de chaque geste
  *     keys.ts        touches du clavier
  *     settings.ts    forme et validation des réglages
+ *     i18n.ts        les deux langues : textes traduits, langue du téléphone
  *   sw/          compilation du service worker du kit (kit/sw/sw.ts)
  *   styles/      styles Sass
  *
