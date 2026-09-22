@@ -10,6 +10,7 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 | Version | Commits | Date | En une phrase |
 | --- | --- | --- | --- |
+| [1.4.0] | 34 | 2026-09-22 | Fond d'appareil de mesure et chargement en cadran, avec les étapes de l'analyse |
 | [1.3.0] | 32 | 2026-09-22 | L'app en français et en anglais, ouverture toujours sur la première slide |
 | [1.2.0] | 26 | 2026-09-16 | Numéro de slide et barre retirés, journal des versions et règles de branche |
 | [1.1.1] | 22 | 2026-09-16 | Corrections d'affichage : texte et bouton qui ne débordent plus |
@@ -27,7 +28,11 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 ---
 
-## [Non publié]
+## [1.4.0] — 2026-09-22
+
+Commits [`2a3350d`](https://github.com/dezande/analyseur-q/commit/2a3350d) — 34 commits
+
+L'écran se remplit : l'appareil a un fond, et son analyse se regarde travailler.
 
 - **Un fond d'appareil de mesure** au lieu d'un écran noir vide : trame fine quadrillée et lueur chaude derrière le contenu, qui s'éteignent vers les bords. Décor seulement (deux dégradés posés sur `#app`, sans animation) : rien ne bouge pendant la routine, le texte reste aussi lisible et le cadre, la note, l'écran noir et le menu passent toujours par-dessus.
 - **Le chargement devient un cadran** : un camembert qui se remplit derrière un anneau de progression, le pourcentage au centre, au lieu de la barre horizontale.
@@ -201,6 +206,7 @@ gh release create v1.3.0 --title "v1.3.0 — Titre" --notes-file notes.md
 
 
 
+[1.4.0]: https://github.com/dezande/analyseur-q/releases/tag/v1.4.0
 [1.3.0]: https://github.com/dezande/analyseur-q/releases/tag/v1.3.0
 [1.2.0]: https://github.com/dezande/analyseur-q/releases/tag/v1.2.0
 [1.1.1]: https://github.com/dezande/analyseur-q/releases/tag/v1.1.1
