@@ -14,6 +14,7 @@ import { counterLabel } from '../logic/deck.ts';
 import { TRANSITIONS, type Settings } from '../logic/settings.ts';
 import { slideLabel } from '../logic/slides.ts';
 import { applyDisplaySettings, currentIndex, goTo, slideCount } from '../stage/deck.ts';
+import { APP_VERSION } from '../version.ts';
 import { langue, onLangChange } from './langue.ts';
 import { settings, storeSettings } from './store.ts';
 
@@ -69,8 +70,9 @@ function refresh(): void {
 	}
 	const lang = langue();
 	$('#menu-position').textContent = counterLabel(current, slideCount);
-	$('#menu-version').textContent = `${ui('menu.version', lang)} ${BUILD.version}`;
-	$('#about-version').textContent = `${BUILD.version} (${BUILD.commit})`;
+	$('#menu-version').textContent = `${ui('menu.version', lang)} ${APP_VERSION}`;
+	// En bas du menu, le détail exact de ce qui est installé : numéro de build et commit.
+	$('#about-version').textContent = `${APP_VERSION} — build ${BUILD.version} (${BUILD.commit})`;
 	void showCache();
 	void requestPersistentStorage().then((state) => {
 		$('#about-storage').textContent = ui(STORAGE_TEXTS[state], langue());

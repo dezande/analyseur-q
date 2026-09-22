@@ -28,9 +28,15 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 ---
 
+## [Non publié]
+
+- **Le menu affiche le numéro de version de l'app** (`1.4.0`) et non plus le nombre de commits : celui-ci était affiché seul, ce qui donnait « Version 34 » sur le téléphone. Le numéro vient de `src/version.ts`, que `npm test` compare à la dernière version du journal — impossible d'annoncer une version qui n'existe pas. Le détail exact de ce qui est installé reste en bas du menu : « 1.4.0 — build 34 (ef241f0) ».
+- **Kit accroché à sa version `v1.3.0`** : `npm run deploy` ne rejoue plus les tests dans Chrome en local (la CI de la pull request les lance et bloque la fusion s'ils échouent) et sa vérification finale compare le commit servi au commit fusionné. La commande passe d'une dizaine de minutes à environ cinq, et ne se termine plus par une fausse erreur : le nom de cache qu'elle attendait était calculé avant la fusion en rebase, qui réécrit le commit. `npm run deploy -- --complet` rejoue tout en local pour qui veut.
+- Journal : les commits cités pour les versions 1.3.0 et 1.4.0 sont ceux de `main`. Les précédents venaient de la branche de publication, que la fusion en rebase réécrit.
+
 ## [1.4.0] — 2026-09-22
 
-Commits [`2a3350d`](https://github.com/dezande/analyseur-q/commit/2a3350d) — 34 commits
+Commits [`f825b8a`](https://github.com/dezande/analyseur-q/commit/f825b8a), [`ef241f0`](https://github.com/dezande/analyseur-q/commit/ef241f0) — 34 commits
 
 L'écran se remplit : l'appareil a un fond, et son analyse se regarde travailler.
 
@@ -40,7 +46,7 @@ L'écran se remplit : l'appareil a un fond, et son analyse se regarde travailler
 
 ## [1.3.0] — 2026-09-22
 
-Commits [`f0ad04f`](https://github.com/dezande/analyseur-q/commit/f0ad04f), [`db899b7`](https://github.com/dezande/analyseur-q/commit/db899b7), [`d0fbc5d`](https://github.com/dezande/analyseur-q/commit/d0fbc5d) — 32 commits
+Commits [`830a82a`](https://github.com/dezande/analyseur-q/commit/830a82a), [`006d1d4`](https://github.com/dezande/analyseur-q/commit/006d1d4), [`829f28d`](https://github.com/dezande/analyseur-q/commit/829f28d) — 32 commits
 
 L'app se joue maintenant en français comme en anglais, et s'ouvre toujours prête à démarrer.
 
