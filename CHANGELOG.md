@@ -10,6 +10,7 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 | Version | Commits | Date | En une phrase |
 | --- | --- | --- | --- |
+| [1.4.1] | 36 | 2026-09-22 | Numéro de version de l'app dans le menu, publication plus rapide |
 | [1.4.0] | 34 | 2026-09-22 | Fond d'appareil de mesure et chargement en cadran, avec les étapes de l'analyse |
 | [1.3.0] | 32 | 2026-09-22 | L'app en français et en anglais, ouverture toujours sur la première slide |
 | [1.2.0] | 26 | 2026-09-16 | Numéro de slide et barre retirés, journal des versions et règles de branche |
@@ -28,7 +29,9 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 ---
 
-## [Non publié]
+## [1.4.1] — 2026-09-22
+
+36 commits
 
 - **Le menu affiche le numéro de version de l'app** (`1.4.0`) et non plus le nombre de commits : celui-ci était affiché seul, ce qui donnait « Version 34 » sur le téléphone. Le numéro vient de `src/version.ts`, que `npm test` compare à la dernière version du journal — impossible d'annoncer une version qui n'existe pas. Le détail exact de ce qui est installé reste en bas du menu : « 1.4.0 — build 34 (ef241f0) ».
 - **Kit accroché à sa version `v1.3.0`** : `npm run deploy` ne rejoue plus les tests dans Chrome en local (la CI de la pull request les lance et bloque la fusion s'ils échouent) et sa vérification finale compare le commit servi au commit fusionné. La commande passe d'une dizaine de minutes à environ cinq, et ne se termine plus par une fausse erreur : le nom de cache qu'elle attendait était calculé avant la fusion en rebase, qui réécrit le commit. `npm run deploy -- --complet` rejoue tout en local pour qui veut.
@@ -212,6 +215,7 @@ gh release create v1.3.0 --title "v1.3.0 — Titre" --notes-file notes.md
 
 
 
+[1.4.1]: https://github.com/dezande/analyseur-q/releases/tag/v1.4.1
 [1.4.0]: https://github.com/dezande/analyseur-q/releases/tag/v1.4.0
 [1.3.0]: https://github.com/dezande/analyseur-q/releases/tag/v1.3.0
 [1.2.0]: https://github.com/dezande/analyseur-q/releases/tag/v1.2.0
