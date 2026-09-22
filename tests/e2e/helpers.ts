@@ -17,14 +17,28 @@ export const RIGHT: Point = { x: SCREEN.width - 80, y: SCREEN.height / 2 };
 export const LEFT: Point = { x: 50, y: SCREEN.height / 2 };
 export const CENTER: Point = { x: SCREEN.width / 2, y: SCREEN.height / 2 };
 
+/** Langue du « téléphone » de test (voir setPhoneLang) : l'app la suit tant qu'aucune n'a été choisie. */
+export const PHONE_LANG = 'fr-FR,fr';
+
 /**
- * Ouvre l'app à `url` dans un nouvel onglet avec `storage` déjà enregistré (clé → valeur brute ;
- * POSITION_KEY dans sessionStorage, le reste dans localStorage), attend ses `count` slides,
- * lance `run`, puis vérifie qu'aucune erreur JavaScript n'a eu lieu.
+ * Règle la langue du navigateur de la page (navigator.languages), d'où l'app tire sa langue de
+ * départ (logic/i18n.ts). Fixée ici plutôt qu'au lancement de Chrome : l'option `--lang` ne fait
+ * rien sous Linux (la CI), où Chrome suit la locale du système.
+ */
+export async function setPhoneLang(page: Page, languages: string): Promise<void> {
+	const agent = await page.evaluate<string>('navigator.userAgent');
+	await page.send('Emulation.setUserAgentOverride', { userAgent: agent, acceptLanguage: languages });
+}
+
+/**
+ * Ouvre l'app à `url` dans un nouvel onglet, téléphone en français (PHONE_LANG) et `storage` déjà
+ * enregistré (clé → valeur brute ; POSITION_KEY dans sessionStorage, le reste dans localStorage),
+ * attend ses `count` slides, lance `run`, puis vérifie qu'aucune erreur JavaScript n'a eu lieu.
  */
 export async function openApp(browser: Browser, url: string, count: number, storage: Record<string, string>, run: (page: Page) => Promise<void>): Promise<void> {
 	const page = await browser.newPage();
 	try {
+		await setPhoneLang(page, PHONE_LANG);
 		await page.goto(url);
 		const setup = Object.entries(storage).map(([key, value]) => `${key === POSITION_KEY ? 'sessionStorage' : 'localStorage'}.setItem(${JSON.stringify(key)}, ${JSON.stringify(value)});`).join('');
 		await page.evaluate(`localStorage.clear(); sessionStorage.clear(); ${setup}`);

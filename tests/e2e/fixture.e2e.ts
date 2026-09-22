@@ -60,9 +60,7 @@ before(async () => {
 	cpSync('dist', dir, { recursive: true });
 	writeFileSync(join(dir, 'content', 'slides.js'), `export const SLIDES = ${JSON.stringify(FIXTURE)};\n`);
 	server = await startStaticServer(dir, 0);
-	// Chrome en français : l'app suit la langue du téléphone tant qu'aucune n'a été choisie
-	// (logic/i18n.ts), et ces tests lisent les textes français.
-	browser = await Browser.launch(['--lang=fr-FR']);
+	browser = await Browser.launch();
 });
 
 after(async () => {

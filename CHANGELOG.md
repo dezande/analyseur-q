@@ -10,7 +10,7 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 | Version | Commits | Date | En une phrase |
 | --- | --- | --- | --- |
-| [1.3.0] | 31 | 2026-09-22 | L'app en français et en anglais, ouverture toujours sur la première slide |
+| [1.3.0] | 32 | 2026-09-22 | L'app en français et en anglais, ouverture toujours sur la première slide |
 | [1.2.0] | 26 | 2026-09-16 | Numéro de slide et barre retirés, journal des versions et règles de branche |
 | [1.1.1] | 22 | 2026-09-16 | Corrections d'affichage : texte et bouton qui ne débordent plus |
 | [1.1.0] | 19 | 2026-09-16 | Bouton « Recommencer » et délai d'activation |
@@ -29,12 +29,12 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 ## [1.3.0] — 2026-09-22
 
-Commits [`f0ad04f`](https://github.com/dezande/analyseur-q/commit/f0ad04f), [`db899b7`](https://github.com/dezande/analyseur-q/commit/db899b7), [`d0fbc5d`](https://github.com/dezande/analyseur-q/commit/d0fbc5d) — 31 commits
+Commits [`f0ad04f`](https://github.com/dezande/analyseur-q/commit/f0ad04f), [`db899b7`](https://github.com/dezande/analyseur-q/commit/db899b7), [`d0fbc5d`](https://github.com/dezande/analyseur-q/commit/d0fbc5d) — 32 commits
 
 L'app se joue maintenant en français comme en anglais, et s'ouvre toujours prête à démarrer.
 
 - **L'app parle français et anglais.** Tout est traduit : les slides, le menu, l'aide, le cadre de l'appareil, et jusqu'aux figures des cartes (`R D V` en français, `K Q J` en anglais, deux images). Seul le nom de l'app ne change pas. La langue se choisit sur la première slide, avec deux petits boutons `FR` / `EN` en haut à droite : tout bascule aussitôt sans quitter la slide, un appui dessus n'avance pas le diaporama, et le choix est enregistré comme les autres réglages. À la première ouverture, l'app suit la langue du téléphone.
-- **Le texte s'écrit une fois par langue** : dans `src/content/slides.ts`, chaque champ accepte `{ fr: '…', en: '…' }` (ou un seul texte quand il est commun aux deux) ; le texte du menu est réuni dans le nouveau `src/content/interface.ts`, et `public/index.html` ne porte plus que des clés. Une traduction oubliée ou vide fait échouer `npm test`, dans les deux langues, images comprises.
+- **Le texte s'écrit une fois par langue** : dans `src/content/slides.ts`, chaque champ accepte `{ fr: '…', en: '…' }` (ou un seul texte quand il est commun aux deux) ; le texte du menu est réuni dans le nouveau `src/content/interface.ts`, et `public/index.html` ne porte plus que des clés. Une traduction oubliée ou vide fait échouer `npm test`, dans les deux langues, images comprises. Les tests dans Chrome règlent la langue du « téléphone » page par page (l'option `--lang` de Chrome ne fait rien sous Linux, donc sur la CI), et vérifient le changement de langue, le menu traduit et la langue du téléphone à la première ouverture.
 - **Ouverture toujours sur la première slide** : la slide en cours n'est plus enregistrée sur l'appareil, seulement gardée le temps de la session (sessionStorage). L'app est donc prête à jouer à chaque ouverture, même après une routine laissée en cours, alors qu'un rechargement de la page (mise à jour installée, onglet rouvert par le système) reprend toujours la slide affichée : jamais de retour au début en pleine routine. Les réglages, eux, restent enregistrés comme avant.
 - **« Cartes à points »** au lieu de « cartes numérotées » sur la slide des cartes noires.
 - **Journal des versions aligné sur le kit** : la vérification vient de `src/kit/node/check-changelog.ts` au lieu d'un script local (supprimé, ainsi que ses tests), et le fichier prend le format du kit — sections `## [1.2.0] — 2026-09-16`, « Non publié » en tête, liens vers les publications en bas. Les trois dépôts (kit, Analyseur Q, boule de cristal) tiennent donc leur journal de la même façon.
