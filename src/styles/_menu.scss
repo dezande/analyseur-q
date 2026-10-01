@@ -256,3 +256,19 @@
 		line-height: 1.6;
 	}
 }
+
+// Retour au menu principal de « Mes tours » : un lien, présenté comme les boutons du menu.
+.mes-tours {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	min-height: 46px;
+	margin: 4px 0 12px;
+	border-radius: 12px;
+	font-size: 15px;
+	color: $ink;
+	background: rgba(255, 255, 255, .05);
+	border: 1px solid $ink-faint;
+	text-decoration: none;
+}
