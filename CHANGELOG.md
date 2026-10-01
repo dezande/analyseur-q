@@ -30,6 +30,10 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 ---
 
+## [Non publié]
+
+- **L'app s'installe enfin à côté des autres accessoires de scène.** Son manifeste déclarait `"id": "./"`, que Chrome résout à partir de la racine du site, et non du dossier de l'app : la boule de cristal, l'analyseur, les six prédictions et Pile ou face avaient toutes le même identifiant, `https://dezande.github.io/`. Sur Android, dès que l'une était installée, Chrome prenait les autres pour elle : il proposait de les ouvrir au lieu de les installer, puis échouait (« Impossible d'ouvrir l'application »). L'identifiant est maintenant `/analyseur-q/`, propre à l'app. Une version déjà installée est vue comme une autre app : la désinstaller, puis réinstaller.
+
 ## [1.4.2] — 2026-09-22
 
 38 commits
