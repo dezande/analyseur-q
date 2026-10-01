@@ -22,6 +22,8 @@ export const INTERFACE = {
 	'menu.aller': { fr: 'Aller à la slide', en: 'Go to slide' },
 	'menu.recommencer': { fr: 'Recommencer au début', en: 'Start over' },
 	'menu.fermer': { fr: 'Fermer', en: 'Close' },
+	// Le nom de l'app qui regroupe tous les tours : le même dans les deux langues.
+	'menu.mesTours': 'Mes tours',
 	'menu.transition': { fr: 'Transition', en: 'Transition' },
 	'menu.langue': { fr: 'Langue', en: 'Language' },
 	'menu.aides': {

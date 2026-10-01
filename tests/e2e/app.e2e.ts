@@ -712,3 +712,15 @@ test('hors-ligne : une fois ouverte, l’app redémarre serveur arrêté', TEST_
 		if (!closed) await offlineServer.close();
 	}
 });
+
+test('menu : le bouton « Mes tours » ramène au menu principal, à la racine du site', TEST_TIMEOUT, async () => {
+	await withApp({}, async (page) => {
+		const lien = await page.evaluate<{ texte: string; chemin: string }>(
+			`(() => { const a = document.querySelector('#menu a.mes-tours'); return { texte: a.textContent.trim(), chemin: new URL(a.href).pathname }; })()`,
+		);
+		assert.match(lien.texte, /Mes tours/);
+		// L'app est servie à la racine pendant les tests : « ../ » y mène aussi. Sur le site, depuis
+		// /analyseur-q/, il mène à la racine, où est installée l'app « Mes tours ».
+		assert.equal(lien.chemin, '/');
+	});
+});
