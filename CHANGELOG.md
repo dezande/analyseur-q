@@ -10,6 +10,7 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 | Version | Commits | Date | En une phrase |
 | --- | --- | --- | --- |
+| [1.5.0] | 41 | 2026-10-03 | Bouton « Mes tours » et identifiant propre, pour s'installer à côté des autres |
 | [1.4.2] | 38 | 2026-09-22 | Publication plus rapide : la CI ne vérifie plus deux fois |
 | [1.4.1] | 36 | 2026-09-22 | Numéro de version de l'app dans le menu, publication plus rapide |
 | [1.4.0] | 34 | 2026-09-22 | Fond d'appareil de mesure et chargement en cadran, avec les étapes de l'analyse |
@@ -30,7 +31,9 @@ Les numéros suivent [semver](https://semver.org/lang/fr/) : `MAJEUR.MINEUR.CORR
 
 ---
 
-## [Non publié]
+## [1.5.0] — 2026-10-03
+
+41 commits
 
 - **L'app s'installe enfin à côté des autres accessoires de scène.** Son manifeste déclarait `"id": "./"`, que Chrome résout à partir de la racine du site, et non du dossier de l'app : la boule de cristal, l'analyseur, les six prédictions et Pile ou face avaient toutes le même identifiant, `https://dezande.github.io/`. Sur Android, dès que l'une était installée, Chrome prenait les autres pour elle : il proposait de les ouvrir au lieu de les installer, puis échouait (« Impossible d'ouvrir l'application »). L'identifiant est maintenant `/analyseur-q/`, propre à l'app. Une version déjà installée est vue comme une autre app : la désinstaller, puis réinstaller.
 - **Un bouton « Mes tours » dans le menu**, pour revenir au menu principal de l'app « Mes tours » (https://dezande.github.io/), qui regroupe tous les tours dans une seule app installée. Chrome sur Android ne gère bien qu'une app installée par site : on installe désormais « Mes tours », et ce tour s'ouvre dedans.
@@ -227,6 +230,7 @@ gh release create v1.3.0 --title "v1.3.0 — Titre" --notes-file notes.md
 
 
 
+[1.5.0]: https://github.com/dezande/analyseur-q/releases/tag/v1.5.0
 [1.4.2]: https://github.com/dezande/analyseur-q/releases/tag/v1.4.2
 [1.4.1]: https://github.com/dezande/analyseur-q/releases/tag/v1.4.1
 [1.4.0]: https://github.com/dezande/analyseur-q/releases/tag/v1.4.0
